@@ -1,0 +1,14 @@
+name: chess-backend-ci
+run-name: ${{ github.actor }} is running GitHub Actions on chess-backend commit
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: check formatting
+        run: |
+          if ! docker compose up --build --abort-on-container-exit format-check
+          then
+            exit 1
+          fi

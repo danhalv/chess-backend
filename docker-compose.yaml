@@ -1,0 +1,5 @@
+services:
+  format-check:
+    build: .
+    container_name: ChessApi_format-check
+    command: bash -c "dotnet format ChessApi/ --verify-no-changes"
