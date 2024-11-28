@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics;
 
 namespace ChessApi.Models;
@@ -37,9 +36,7 @@ public class Board
 
     for (int i = 0; i < 64; i++)
     {
-      var tileRow = playerColor == Color.White ? (63 - i) / 8 : i / 8;
-      var tileCol = playerColor == Color.White ? i % 8 : (63 - i) % 8;
-      int tileIndex = (tileRow * 8) + tileCol;
+      int tileIndex = (Tile.Row(63 - i) * 8) + Tile.Col(i);
 
       switch (boardString[i])
       {
@@ -66,36 +63,15 @@ public class Board
 
   public Tile GetTile(string tileString)
   {
-    Debug.Assert(tileString.Length == 2,
-                 "Unknown tile string format. Example: 'a1'.");
+    return _Tiles[Tile.StringToIndex(tileString)];
+  }
 
-    int tileRow = tileString[0] switch
-    {
-      'a' => 0,
-      'b' => 1,
-      'c' => 2,
-      'd' => 3,
-      'e' => 4,
-      'f' => 5,
-      'g' => 6,
-      'h' => 7,
-      _ => throw new ArgumentOutOfRangeException(Char.ToString(tileString[0])),
-    };
+  public bool IsTileOccupied(int tileIndex)
+  {
+    var tile = GetTile(tileIndex);
 
-    int tileCol = tileString[1] switch
-    {
-      '1' => 0,
-      '2' => 1,
-      '3' => 2,
-      '4' => 3,
-      '5' => 4,
-      '6' => 5,
-      '7' => 6,
-      '8' => 7,
-      _ => throw new ArgumentOutOfRangeException(Char.ToString(tileString[1])),
-    };
-
-    int tileIndex = (tileRow * 8) + tileCol;
-    return _Tiles[tileIndex];
+    if (tile.Piece != null)
+      return true;
+    return false;
   }
 }
