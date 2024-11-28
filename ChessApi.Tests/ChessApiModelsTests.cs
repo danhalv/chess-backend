@@ -133,4 +133,61 @@ public class ChessApiModelsTests
     yield return new object[] { boardString, Color.White, "f4", f4BlackPawnMoves };
     yield return new object[] { boardString, Color.White, "b5", b5WhitePawnMoves };
   }
+
+  [Theory, MemberData(nameof(TestPossibleKnightMovesData))]
+  public void TestPossibleKnightMoves(string boardString,
+                                      Color playerColor,
+                                      string knightTileString,
+                                      List<Move> expected)
+  {
+    var board = new Board(playerColor, boardString);
+
+    Tile knightTile = board.GetTile(knightTileString);
+    List<Move> actual = knightTile.Piece!.GetMoves(board, knightTile.Index);
+
+    Assert.Equal(expected.Count, actual.Count);
+
+    actual = actual.OrderBy(m => m.To).ToList();
+    expected = expected.OrderBy(m => m.To).ToList();
+    for (int i = 0; i < actual.Count; i++)
+    {
+      Assert.Equal(expected[i].From, actual[i].From);
+      Assert.Equal(expected[i].To, actual[i].To);
+    }
+  }
+
+  public static IEnumerable<object[]> TestPossibleKnightMovesData()
+  {
+    var boardString = """
+    ________
+    ________
+    ________
+    ____K___
+    ________
+    _k______
+    __K_____
+    k_______
+    """
+    .Replace("\n", String.Empty);
+
+    var e5WhiteKnightMoves = new List<Move>()
+    {
+      new Move("e5", "d7"),
+      new Move("e5", "f7"),
+      new Move("e5", "d3"),
+      new Move("e5", "f3"),
+      new Move("e5", "c4"),
+      new Move("e5", "c6"),
+      new Move("e5", "g4"),
+      new Move("e5", "g6")
+    };
+
+    var a1BlackKnightMoves = new List<Move>()
+    {
+      new Move("a1", "c2")
+    };
+
+    yield return new object[] { boardString, Color.White, "e5", e5WhiteKnightMoves };
+    yield return new object[] { boardString, Color.White, "a1", a1BlackKnightMoves };
+  }
 }
