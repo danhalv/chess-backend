@@ -64,7 +64,7 @@ public class Tile
 
       for (int diagonalTile = Tile.CalcIndex(tileIndex, rowDiff, colDiff);
            Tile.IsInRange(diagonalTile);
-           diagonalTile += Tile.CalcIndex(diagonalTile, rowDiff, colDiff))
+           diagonalTile = Tile.CalcIndex(diagonalTile, rowDiff, colDiff))
       {
         diagonalTiles.Add(diagonalTile);
       }

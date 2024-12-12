@@ -43,6 +43,12 @@ public class Board
         case '_':
           _Tiles[tileIndex] = new Tile(tileIndex);
           break;
+        case 'b':
+          _Tiles[tileIndex] = new Tile(tileIndex, new Bishop(Color.Black));
+          break;
+        case 'B':
+          _Tiles[tileIndex] = new Tile(tileIndex, new Bishop(Color.White));
+          break;
         case 'k':
           _Tiles[tileIndex] = new Tile(tileIndex, new Knight(Color.Black));
           break;
