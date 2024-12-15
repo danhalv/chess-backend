@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace ChessApi.Models;
+namespace ChessApi.Models.Chess;
 
 public class Board
 {

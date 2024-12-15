@@ -1,4 +1,4 @@
-using ChessApi.Models;
+using ChessApi.Models.Chess;
 
 namespace ChessApi.Tests;
 
@@ -79,12 +79,12 @@ public class ChessApiModelsTests
 
     Assert.Equal(expected.Count, actual.Count);
 
-    actual = actual.OrderBy(m => m.To).ToList();
-    expected = expected.OrderBy(m => m.To).ToList();
+    actual = actual.OrderBy(m => m.Dst).ToList();
+    expected = expected.OrderBy(m => m.Dst).ToList();
     for (int i = 0; i < actual.Count; i++)
     {
-      Assert.Equal(expected[i].From, actual[i].From);
-      Assert.Equal(expected[i].To, actual[i].To);
+      Assert.Equal(expected[i].Src, actual[i].Src);
+      Assert.Equal(expected[i].Dst, actual[i].Dst);
     }
   }
 
@@ -147,12 +147,12 @@ public class ChessApiModelsTests
 
     Assert.Equal(expected.Count, actual.Count);
 
-    actual = actual.OrderBy(m => m.To).ToList();
-    expected = expected.OrderBy(m => m.To).ToList();
+    actual = actual.OrderBy(m => m.Dst).ToList();
+    expected = expected.OrderBy(m => m.Dst).ToList();
     for (int i = 0; i < actual.Count; i++)
     {
-      Assert.Equal(expected[i].From, actual[i].From);
-      Assert.Equal(expected[i].To, actual[i].To);
+      Assert.Equal(expected[i].Src, actual[i].Src);
+      Assert.Equal(expected[i].Dst, actual[i].Dst);
     }
   }
 
@@ -204,12 +204,12 @@ public class ChessApiModelsTests
 
     Assert.Equal(expected.Count, actual.Count);
 
-    actual = actual.OrderBy(m => m.To).ToList();
-    expected = expected.OrderBy(m => m.To).ToList();
+    actual = actual.OrderBy(m => m.Dst).ToList();
+    expected = expected.OrderBy(m => m.Dst).ToList();
     for (int i = 0; i < actual.Count; i++)
     {
-      Assert.Equal(expected[i].From, actual[i].From);
-      Assert.Equal(expected[i].To, actual[i].To);
+      Assert.Equal(expected[i].Src, actual[i].Src);
+      Assert.Equal(expected[i].Dst, actual[i].Dst);
     }
   }
 

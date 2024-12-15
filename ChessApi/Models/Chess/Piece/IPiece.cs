@@ -1,5 +1,4 @@
-
-namespace ChessApi.Models;
+namespace ChessApi.Models.Chess;
 
 public interface IPiece
 {

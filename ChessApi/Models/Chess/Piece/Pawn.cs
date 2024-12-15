@@ -1,4 +1,4 @@
-namespace ChessApi.Models;
+namespace ChessApi.Models.Chess;
 
 public class Pawn : IPiece
 {
