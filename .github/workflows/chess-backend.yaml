@@ -22,3 +22,14 @@ jobs:
             then
               exit 1
             fi
+  migrations:
+      needs: test
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - name: run migrations
+          run: |
+            if ! docker compose up --build --abort-on-container-exit migrations
+            then
+              exit 1
+            fi

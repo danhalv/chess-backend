@@ -86,4 +86,44 @@ public class Board
       return true;
     return false;
   }
+
+  public void MakeMove(Move move)
+  {
+    _Tiles[move.Dst].Piece = _Tiles[move.Src].Piece;
+    _Tiles[move.Src].Piece = null;
+  }
+
+  public string ToString(Color playerColor = Color.White)
+  {
+    var boardString = "";
+
+    for (int i = 0; i < 64; i++)
+    {
+      int tileIndex = (playerColor == Color.White) ?
+        (Tile.Row(63 - i) * 8) + Tile.Col(i) :
+        i;
+
+      // newline on rows
+      if (i > 7 && i % 8 == 0)
+        boardString += "\n";
+
+      switch (_Tiles[tileIndex].Piece)
+      {
+        case Bishop b:
+          boardString += (b.Color == Color.White) ? "B" : "b";
+          break;
+        case Knight k:
+          boardString += (k.Color == Color.White) ? "K" : "k";
+          break;
+        case Pawn p:
+          boardString += (p.Color == Color.White) ? "P" : "p";
+          break;
+        default:
+          boardString += "_";
+          break;
+      }
+    }
+
+    return boardString;
+  }
 }
