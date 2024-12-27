@@ -1,3 +1,4 @@
+using ChessApi.Controllers;
 using ChessApi.Models;
 using ChessApi.Models.Chess;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +10,17 @@ var conn = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ChessDbContext>(options =>
   options.UseNpgsql(conn));
 
+builder.Services.AddControllers();
+
 var app = builder.Build();
+
+var webSocketOptions = new WebSocketOptions
+{
+  KeepAliveInterval = TimeSpan.FromMinutes(2)
+};
+app.UseWebSockets(webSocketOptions);
+
+app.MapControllers();
 
 app.MapGet("/", () => "Hello World!");
 

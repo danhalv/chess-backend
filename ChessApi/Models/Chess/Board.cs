@@ -5,25 +5,24 @@ namespace ChessApi.Models.Chess;
 public class Board
 {
   // Represents board. Index 0 starts at 'a1' tile.
-  private Tile[] _Tiles;
+  public Tile[] Tiles { get; private set; } = new Tile[64];
+  public Color Turn { get; private set; } = Color.White;
 
   public Board()
   {
-    _Tiles = new Tile[64];
-
     // fill second row with white pawns
     for (int i = 8; i < 16; i++)
-      _Tiles[i] = new Tile(i, new Pawn(Color.White));
+      Tiles[i] = new Tile(i, new Pawn(Color.White));
 
     // fill 7th row with black pawns
     for (int i = 48; i < 56; i++)
-      _Tiles[i] = new Tile(i, new Pawn(Color.Black));
+      Tiles[i] = new Tile(i, new Pawn(Color.Black));
 
     // fill remaining empty tiles
     for (int i = 0; i < 64; i++)
     {
-      if (_Tiles[i] == null)
-        _Tiles[i] = new Tile(i);
+      if (Tiles[i] == null)
+        Tiles[i] = new Tile(i);
     }
   }
 
@@ -32,8 +31,6 @@ public class Board
     Debug.Assert(boardString.Length == 64,
                  "Board string should be 64 characters.");
 
-    _Tiles = new Tile[64];
-
     for (int i = 0; i < 64; i++)
     {
       int tileIndex = (Tile.Row(63 - i) * 8) + Tile.Col(i);
@@ -41,25 +38,25 @@ public class Board
       switch (boardString[i])
       {
         case '_':
-          _Tiles[tileIndex] = new Tile(tileIndex);
+          Tiles[tileIndex] = new Tile(tileIndex);
           break;
         case 'b':
-          _Tiles[tileIndex] = new Tile(tileIndex, new Bishop(Color.Black));
+          Tiles[tileIndex] = new Tile(tileIndex, new Bishop(Color.Black));
           break;
         case 'B':
-          _Tiles[tileIndex] = new Tile(tileIndex, new Bishop(Color.White));
+          Tiles[tileIndex] = new Tile(tileIndex, new Bishop(Color.White));
           break;
         case 'k':
-          _Tiles[tileIndex] = new Tile(tileIndex, new Knight(Color.Black));
+          Tiles[tileIndex] = new Tile(tileIndex, new Knight(Color.Black));
           break;
         case 'K':
-          _Tiles[tileIndex] = new Tile(tileIndex, new Knight(Color.White));
+          Tiles[tileIndex] = new Tile(tileIndex, new Knight(Color.White));
           break;
         case 'p':
-          _Tiles[tileIndex] = new Tile(tileIndex, new Pawn(Color.Black));
+          Tiles[tileIndex] = new Tile(tileIndex, new Pawn(Color.Black));
           break;
         case 'P':
-          _Tiles[tileIndex] = new Tile(tileIndex, new Pawn(Color.White));
+          Tiles[tileIndex] = new Tile(tileIndex, new Pawn(Color.White));
           break;
         default:
           Debug.Assert(false, "Unsupported character.");
@@ -70,12 +67,12 @@ public class Board
 
   public Tile GetTile(int tileIndex)
   {
-    return _Tiles[tileIndex];
+    return Tiles[tileIndex];
   }
 
   public Tile GetTile(string tileString)
   {
-    return _Tiles[Tile.StringToIndex(tileString)];
+    return Tiles[Tile.StringToIndex(tileString)];
   }
 
   public bool IsTileOccupied(int tileIndex)
@@ -89,8 +86,10 @@ public class Board
 
   public void MakeMove(Move move)
   {
-    _Tiles[move.Dst].Piece = _Tiles[move.Src].Piece;
-    _Tiles[move.Src].Piece = null;
+    Tiles[move.Dst].Piece = Tiles[move.Src].Piece;
+    Tiles[move.Src].Piece = null;
+
+    Turn = (Turn == Color.White) ? Color.Black : Color.White;
   }
 
   public string ToString(Color playerColor = Color.White)
@@ -107,21 +106,10 @@ public class Board
       if (i > 7 && i % 8 == 0)
         boardString += "\n";
 
-      switch (_Tiles[tileIndex].Piece)
-      {
-        case Bishop b:
-          boardString += (b.Color == Color.White) ? "B" : "b";
-          break;
-        case Knight k:
-          boardString += (k.Color == Color.White) ? "K" : "k";
-          break;
-        case Pawn p:
-          boardString += (p.Color == Color.White) ? "P" : "p";
-          break;
-        default:
-          boardString += "_";
-          break;
-      }
+      if (IsTileOccupied(tileIndex))
+        boardString += Tiles[tileIndex].Piece!.CharRepresentation;
+      else
+        boardString += "_";
     }
 
     return boardString;

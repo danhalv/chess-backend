@@ -4,11 +4,13 @@ public class Bishop : IPiece
 {
   public Color Color { get; }
   public bool HasMoved { get; set; }
+  public char CharRepresentation { get; }
 
   public Bishop(Color color)
   {
     Color = color;
     HasMoved = false;
+    CharRepresentation = (color == Color.White) ? 'P' : 'p';
   }
 
   List<Move> IPiece.GetMoves(Board board, int pieceTilePos)

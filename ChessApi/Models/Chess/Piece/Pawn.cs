@@ -4,12 +4,14 @@ public class Pawn : IPiece
 {
   public Color Color { get; }
   public bool HasMoved { get; set; }
+  public char CharRepresentation { get; }
   public bool IsEnpassantable { get; set; }
 
   public Pawn(Color color, bool hasMoved = false, bool isEnpassantable = false)
   {
     Color = color;
     HasMoved = hasMoved;
+    CharRepresentation = (color == Color.White) ? 'P' : 'p';
     IsEnpassantable = isEnpassantable;
   }
 

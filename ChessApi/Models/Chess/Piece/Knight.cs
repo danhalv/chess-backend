@@ -4,11 +4,13 @@ public class Knight : IPiece
 {
   public Color Color { get; }
   public bool HasMoved { get; set; }
+  public char CharRepresentation { get; }
 
   public Knight(Color color)
   {
     Color = color;
     HasMoved = false;
+    CharRepresentation = (color == Color.White) ? 'K' : 'k';
   }
 
   List<Move> IPiece.GetMoves(Board board, int pieceTilePos)
