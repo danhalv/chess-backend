@@ -38,17 +38,19 @@ public class ChessApiWebSocketController : ControllerBase
                           "Invalid chess game id",
                           CancellationToken.None);
 
-    var buffer = new byte[1024 * 4];
+    var buffer = new byte[1024 * 8];
 
-    var result = await ws.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+    var result = await ws.ReceiveAsync(new ArraySegment<byte>(buffer),
+                                       CancellationToken.None);
 
     while (!result.CloseStatus.HasValue)
     {
-      var move = await DeserializeBufferMove(buffer, ws);
+      var move = await DeserializeBufferMove(buffer, result.Count, ws);
 
       if (move is null)
       {
-        result = await ws.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+        result = await ws.ReceiveAsync(new ArraySegment<byte>(buffer),
+                                       CancellationToken.None);
         continue;
       }
 
@@ -64,22 +66,26 @@ public class ChessApiWebSocketController : ControllerBase
       buffer = System.Text.Encoding.UTF8.GetBytes(jsonBoardStr);
 
       await ws.SendAsync(new ArraySegment<byte>(buffer, 0, jsonBoardStr.Length),
-                         result.MessageType, result.EndOfMessage, CancellationToken.None);
-      result = await ws.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                         result.MessageType,
+                         result.EndOfMessage,
+                         CancellationToken.None);
+
+      result = await ws.ReceiveAsync(new ArraySegment<byte>(buffer),
+                                     CancellationToken.None);
     }
 
     await ws.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
   }
 
-  private async Task<Move?> DeserializeBufferMove(Byte[] buffer, WebSocket ws)
+  private async Task<Move?> DeserializeBufferMove(Byte[] buffer,
+                                                  int numBufferBytes,
+                                                  WebSocket ws)
   {
     try
     {
-      var jsonMoveStr = System.Text.Encoding.UTF8.GetString(buffer);
-      buffer = System.Text.Encoding.UTF8.GetBytes(jsonMoveStr);
+      var jsonMoveStr =
+        System.Text.Encoding.UTF8.GetString(buffer, 0, numBufferBytes);
 
-      await ws.SendAsync(new ArraySegment<byte>(buffer, 0, jsonMoveStr.Length),
-                         WebSocketMessageType.Text, true, CancellationToken.None);
       var move = JsonSerializer.Deserialize<Move>(jsonMoveStr);
 
       return move;
@@ -89,7 +95,9 @@ public class ChessApiWebSocketController : ControllerBase
       buffer = System.Text.Encoding.UTF8.GetBytes(e.Message);
 
       await ws.SendAsync(new ArraySegment<byte>(buffer, 0, e.Message.Length),
-                         WebSocketMessageType.Text, true, CancellationToken.None);
+                         WebSocketMessageType.Text,
+                         true,
+                         CancellationToken.None);
 
       return null;
     }

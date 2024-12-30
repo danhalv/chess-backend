@@ -8,4 +8,4 @@ COPY . .
 FROM base AS migrations
 RUN dotnet tool install --global dotnet-ef
 ENV PATH="$PATH:/root/.dotnet/tools"
-ENTRYPOINT dotnet ef database update --project ChessApi
+ENTRYPOINT dotnet ef database update --project ChessApi -- --environment Staging
