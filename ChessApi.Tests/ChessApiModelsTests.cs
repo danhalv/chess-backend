@@ -376,4 +376,76 @@ public class ChessApiModelsTests
     yield return new object[] { boardString, Color.White, "b2", b2WhiteQueenMoves };
     yield return new object[] { boardString, Color.White, "e2", e2BlackQueenMoves };
   }
+
+  [Theory, MemberData(nameof(TestPossibleKingMovesData))]
+  public void TestPossibleKingMoves(string boardString,
+                                    Color playerColor,
+                                    string kingTileString,
+                                    List<Move> expected)
+  {
+    var board = new Board(playerColor, boardString);
+
+    Tile kingTile = board.GetTile(kingTileString);
+    List<Move> actual = kingTile.Piece!.GetMoves(board, kingTile.Index);
+
+    Assert.Equal(expected.Count, actual.Count);
+
+    actual = actual.OrderBy(m => m.Dst).ToList();
+    expected = expected.OrderBy(m => m.Dst).ToList();
+    for (int i = 0; i < actual.Count; i++)
+    {
+      Assert.Equal(expected[i].Src, actual[i].Src);
+      Assert.Equal(expected[i].Dst, actual[i].Dst);
+    }
+  }
+
+  public static IEnumerable<object[]> TestPossibleKingMovesData()
+  {
+    var boardString = """
+    r___k__R
+    ________
+    ________
+    ________
+    __P_____
+    __Kp____
+    ________
+    r___K__R
+    """
+    .Replace("\n", String.Empty);
+
+    var e8BlackKingMoves = new List<Move>
+    {
+      new Move("e8", "c8"), // castling move
+      new Move("e8", "d8"),
+      new Move("e8", "d7"),
+      new Move("e8", "e7"),
+      new Move("e8", "f7"),
+      new Move("e8", "f8")
+    };
+
+    var c3WhiteKingMoves = new List<Move>()
+    {
+      new Move("c3", "b3"),
+      new Move("c3", "b2"),
+      new Move("c3", "c2"),
+      new Move("c3", "d2"),
+      new Move("c3", "d3"),
+      new Move("c3", "d4"),
+      new Move("c3", "b4")
+    };
+
+    var e1WhiteKingMoves = new List<Move>()
+    {
+      new Move("e1", "g1"), // castling move
+      new Move("e1", "f1"),
+      new Move("e1", "f2"),
+      new Move("e1", "e2"),
+      new Move("e1", "d2"),
+      new Move("e1", "d1")
+    };
+
+    yield return new object[] { boardString, Color.White, "e8", e8BlackKingMoves };
+    yield return new object[] { boardString, Color.White, "c3", c3WhiteKingMoves };
+    yield return new object[] { boardString, Color.White, "e1", e1WhiteKingMoves };
+  }
 }
