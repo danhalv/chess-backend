@@ -64,6 +64,12 @@ public class Board
         case 'R':
           Tiles[tileIndex] = new Tile(tileIndex, new Rook(Color.White));
           break;
+        case 'q':
+          Tiles[tileIndex] = new Tile(tileIndex, new Queen(Color.Black));
+          break;
+        case 'Q':
+          Tiles[tileIndex] = new Tile(tileIndex, new Queen(Color.White));
+          break;
         default:
           Debug.Assert(false, "Unsupported character.");
           break;
