@@ -162,11 +162,11 @@ public class ChessApiModelsTests
     ________
     ________
     ________
-    ____K___
+    ____N___
     ________
-    _k______
-    __K_____
-    k_______
+    _n_n_N__
+    __N_____
+    n_______
     """
     .Replace("\n", String.Empty);
 
@@ -175,7 +175,6 @@ public class ChessApiModelsTests
       new Move("e5", "d7"),
       new Move("e5", "f7"),
       new Move("e5", "d3"),
-      new Move("e5", "f3"),
       new Move("e5", "c4"),
       new Move("e5", "c6"),
       new Move("e5", "g4"),

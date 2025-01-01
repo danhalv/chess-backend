@@ -10,7 +10,7 @@ public class Knight : IPiece
   {
     Color = color;
     HasMoved = false;
-    CharRepresentation = (color == Color.White) ? 'K' : 'k';
+    CharRepresentation = (color == Color.White) ? 'N' : 'n';
   }
 
   List<Move> IPiece.GetMoves(Board board, int pieceTilePos)
