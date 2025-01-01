@@ -97,59 +97,66 @@ public class Tile
                                           int tileIndex,
                                           Color playerColor)
   {
-    var horizontalTiles = new List<int>();
-
-    bool isSameTileRow(int tileIndex1, int tileIndex2)
+    List<int> accumulateHorizontalTiles(int tileIndex, int colDiff)
     {
-      return (tileIndex1 / 8) == (tileIndex2 / 8);
-    }
+      var horizontalTiles = new List<int>();
 
-    if ((playerColor == Color.White && direction == Direction.Right)
-        || (playerColor == Color.Black && direction == Direction.Left))
-    {
-      for (int sideTile = Tile.CalcIndex(tileIndex, 0, 1);
-           Tile.IsInRange(sideTile) && isSameTileRow(tileIndex, sideTile);
-           sideTile = Tile.CalcIndex(sideTile, 0, 1))
-        horizontalTiles.Add(sideTile);
+      for (int horizontalTile = Tile.CalcIndex(tileIndex, 0, colDiff);
+           Tile.IsInRange(horizontalTile);
+           horizontalTile = Tile.CalcIndex(horizontalTile, 0, colDiff))
+      {
+        horizontalTiles.Add(horizontalTile);
+      }
+
+      return horizontalTiles;
     }
 
     if ((playerColor == Color.White && direction == Direction.Left)
         || (playerColor == Color.Black && direction == Direction.Right))
     {
-      for (int sideTile = Tile.CalcIndex(tileIndex, 0, -1);
-           Tile.IsInRange(sideTile) && isSameTileRow(tileIndex, sideTile);
-           sideTile = Tile.CalcIndex(sideTile, 0, -1))
-        horizontalTiles.Add(sideTile);
+      return accumulateHorizontalTiles(tileIndex, -1);
     }
 
-    return horizontalTiles;
+    if ((playerColor == Color.White && direction == Direction.Right)
+        || (playerColor == Color.Black && direction == Direction.Left))
+    {
+      return accumulateHorizontalTiles(tileIndex, 1);
+    }
+
+    return new List<int>();
   }
 
   public static List<int> VerticalTiles(Direction direction,
                                         int tileIndex,
                                         Color playerColor)
   {
-    var verticalTiles = new List<int>();
+    List<int> accumulateVerticalTiles(int tileIndex, int rowDiff)
+    {
+      var verticalTiles = new List<int>();
+
+      for (int verticalTile = Tile.CalcIndex(tileIndex, rowDiff, 0);
+           Tile.IsInRange(verticalTile);
+           verticalTile = Tile.CalcIndex(verticalTile, rowDiff, 0))
+      {
+        verticalTiles.Add(verticalTile);
+      }
+
+      return verticalTiles;
+    }
 
     if ((playerColor == Color.White && direction == Direction.Forward)
         || (playerColor == Color.Black && direction == Direction.Backward))
     {
-      for (int verticalTile = Tile.CalcIndex(tileIndex, 1, 0);
-           Tile.IsInRange(verticalTile);
-           verticalTile = Tile.CalcIndex(verticalTile, 1, 0))
-        verticalTiles.Add(verticalTile);
+      return accumulateVerticalTiles(tileIndex, 1);
     }
 
     if ((playerColor == Color.White && direction == Direction.Backward)
         || (playerColor == Color.Black && direction == Direction.Forward))
     {
-      for (int verticalTile = Tile.CalcIndex(tileIndex, -1, 0);
-           Tile.IsInRange(verticalTile);
-           verticalTile = Tile.CalcIndex(verticalTile, -1, 0))
-        verticalTiles.Add(verticalTile);
+      return accumulateVerticalTiles(tileIndex, -1);
     }
 
-    return verticalTiles;
+    return new List<int>();
   }
 
   public static int StringToIndex(string tileString)

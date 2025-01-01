@@ -246,4 +246,70 @@ public class ChessApiModelsTests
     yield return new object[] { boardString, Color.White, "f3", f3WhiteBishopMoves };
     yield return new object[] { boardString, Color.White, "h8", h8BlackBishopMoves };
   }
+
+  [Theory, MemberData(nameof(TestPossibleRookMovesData))]
+  public void TestPossibleRookMoves(string boardString,
+                                    Color playerColor,
+                                    string rookTileString,
+                                    List<Move> expected)
+  {
+    var board = new Board(playerColor, boardString);
+
+    Tile rookTile = board.GetTile(rookTileString);
+    List<Move> actual = rookTile.Piece!.GetMoves(board, rookTile.Index);
+
+    Assert.Equal(expected.Count, actual.Count);
+
+    actual = actual.OrderBy(m => m.Dst).ToList();
+    expected = expected.OrderBy(m => m.Dst).ToList();
+    for (int i = 0; i < actual.Count; i++)
+    {
+      Assert.Equal(expected[i].Src, actual[i].Src);
+      Assert.Equal(expected[i].Dst, actual[i].Dst);
+    }
+  }
+
+  public static IEnumerable<object[]> TestPossibleRookMovesData()
+  {
+    var boardString = """
+    ________
+    __R_____
+    _____R__
+    ________
+    __r__R__
+    ________
+    __r_____
+    ________
+    """
+    .Replace("\n", String.Empty);
+
+    var c4BlackRookMoves = new List<Move>()
+    {
+      new Move("c4", "c3"),
+      new Move("c4", "c5"),
+      new Move("c4", "c6"),
+      new Move("c4", "c7"),
+      new Move("c4", "d4"),
+      new Move("c4", "e4"),
+      new Move("c4", "f4"),
+      new Move("c4", "b4"),
+      new Move("c4", "a4")
+    };
+
+    var f4WhiteRookMoves = new List<Move>()
+    {
+      new Move("f4", "f3"),
+      new Move("f4", "f2"),
+      new Move("f4", "f1"),
+      new Move("f4", "f5"),
+      new Move("f4", "g4"),
+      new Move("f4", "h4"),
+      new Move("f4", "e4"),
+      new Move("f4", "d4"),
+      new Move("f4", "c4")
+    };
+
+    yield return new object[] { boardString, Color.White, "c4", c4BlackRookMoves };
+    yield return new object[] { boardString, Color.White, "f4", f4WhiteRookMoves };
+  }
 }
