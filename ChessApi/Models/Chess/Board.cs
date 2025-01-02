@@ -111,6 +111,25 @@ public class Board
     return Tiles[Tile.StringToIndex(tileString)];
   }
 
+  public bool IsCheck()
+  {
+    var playerKingTile = Tiles.First(t => t.Piece != null
+                                          && t.Piece.GetType() == typeof(King)
+                                          && t.Piece.Color == Turn);
+
+    var opponentTiles = Tiles.Where(t => t.Piece != null
+                                         && t.Piece.Color != Turn);
+
+    var opponentMoves = opponentTiles.Aggregate(new List<Move>(),
+                                                (moves, tile) =>
+                                                {
+                                                  moves.AddRange(tile.Piece!.GetMoves(this, tile.Index));
+                                                  return moves;
+                                                });
+
+    return opponentMoves.Any(move => move.Dst == playerKingTile.Index);
+  }
+
   public bool IsTileOccupied(int tileIndex)
   {
     var tile = GetTile(tileIndex);

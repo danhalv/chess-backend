@@ -448,4 +448,46 @@ public class ChessApiModelsTests
     yield return new object[] { boardString, Color.White, "c3", c3WhiteKingMoves };
     yield return new object[] { boardString, Color.White, "e1", e1WhiteKingMoves };
   }
+
+  [Theory, MemberData(nameof(TestChecksData))]
+  public void TestChecks(string boardString,
+                         Color playerColor,
+                         bool expected)
+  {
+    var board = new Board(playerColor, boardString);
+
+    bool actual = board.IsCheck();
+
+    Assert.Equal(expected, actual);
+  }
+
+  public static IEnumerable<object[]> TestChecksData()
+  {
+    var whiteInCheckBoardStr = """
+    ________
+    ________
+    _____P__
+    ________
+    ___b____
+    __K_____
+    _____r__
+    ________
+    """
+    .Replace("\n", String.Empty);
+
+    var whiteNotInCheckBoardStr = """
+    ___K____
+    ________
+    _____P__
+    ________
+    ___b____
+    ________
+    _____r__
+    Rk______
+    """
+    .Replace("\n", String.Empty);
+
+    yield return new object[] { whiteInCheckBoardStr, Color.White, true };
+    yield return new object[] { whiteNotInCheckBoardStr, Color.White, false };
+  }
 }
