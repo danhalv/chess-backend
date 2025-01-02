@@ -13,14 +13,14 @@ public class ChessApiEndpointsTests
   public async void TestWebSocketMove()
   {
     var boardString = """
-    ________
+    rnbqkbnr
     pppppppp
     ________
     ________
     _______P
     P_______
     _PPPPPP_
-    ________
+    RNBQKBNR
     """
     .Replace("\n", String.Empty);
 

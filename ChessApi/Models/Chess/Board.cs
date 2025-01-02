@@ -10,6 +10,15 @@ public class Board
 
   public Board()
   {
+    Tiles[0] = new Tile(0, new Rook(Color.White));
+    Tiles[1] = new Tile(1, new Knight(Color.White));
+    Tiles[2] = new Tile(2, new Bishop(Color.White));
+    Tiles[3] = new Tile(3, new Queen(Color.White));
+    Tiles[4] = new Tile(4, new King(Color.White));
+    Tiles[5] = new Tile(5, new Bishop(Color.White));
+    Tiles[6] = new Tile(6, new Knight(Color.White));
+    Tiles[7] = new Tile(7, new Rook(Color.White));
+
     // fill second row with white pawns
     for (int i = 8; i < 16; i++)
       Tiles[i] = new Tile(i, new Pawn(Color.White));
@@ -17,6 +26,15 @@ public class Board
     // fill 7th row with black pawns
     for (int i = 48; i < 56; i++)
       Tiles[i] = new Tile(i, new Pawn(Color.Black));
+
+    Tiles[56] = new Tile(56, new Rook(Color.Black));
+    Tiles[57] = new Tile(57, new Knight(Color.Black));
+    Tiles[58] = new Tile(58, new Bishop(Color.Black));
+    Tiles[59] = new Tile(59, new Queen(Color.Black));
+    Tiles[60] = new Tile(60, new King(Color.Black));
+    Tiles[61] = new Tile(61, new Bishop(Color.Black));
+    Tiles[62] = new Tile(62, new Knight(Color.Black));
+    Tiles[63] = new Tile(63, new Rook(Color.Black));
 
     // fill remaining empty tiles
     for (int i = 0; i < 64; i++)
