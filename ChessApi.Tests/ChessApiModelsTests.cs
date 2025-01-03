@@ -528,4 +528,69 @@ public class ChessApiModelsTests
     yield return new object[] { notCheckmateBoardStr, Color.White, false };
     yield return new object[] { notCheckmateBoardStr, Color.Black, false };
   }
+
+  [Theory, MemberData(nameof(TestLegalMovesData))]
+  public void TestLegalMoves(string boardString,
+                             Color playerTurn,
+                             string tileStr,
+                             List<Move> expected)
+  {
+    var board = new Board(playerTurn, boardString);
+
+    var actual = (tileStr == "")
+                 ? board.LegalMoves()
+                 : board.LegalMoves(tileStr);
+
+    Assert.Equal(expected.Count, actual.Count);
+
+    actual = actual.OrderBy(m => m.Dst).ToList();
+    expected = expected.OrderBy(m => m.Dst).ToList();
+    for (int i = 0; i < actual.Count; i++)
+    {
+      Assert.Equal(expected[i].Src, actual[i].Src);
+      Assert.Equal(expected[i].Dst, actual[i].Dst);
+    }
+  }
+
+  public static IEnumerable<object[]> TestLegalMovesData()
+  {
+    var boardStr = """
+    ________
+    ________
+    ________
+    _____R_R
+    ________
+    ______k_
+    _p______
+    ________
+    """
+    .Replace("\n", String.Empty);
+
+    var blackLegalMoves = new List<Move>()
+    {
+      new Move("g3", "g2"), // king moves
+      new Move("g3", "g4"),
+      new Move("b2", "b1")  // pawn moves
+    };
+
+    var blockingCheckBoardStr = """
+    b_______
+    _Q______
+    __K_____
+    ________
+    ________
+    ________
+    ________
+    ________
+    """
+    .Replace("\n", String.Empty);
+
+    var b7WhiteQueenLegalMoves = new List<Move>()
+    {
+      new Move("b7", "a8")
+    };
+
+    yield return new object[] { boardStr, Color.Black, "", blackLegalMoves };
+    yield return new object[] { blockingCheckBoardStr, Color.White, "b7", b7WhiteQueenLegalMoves };
+  }
 }

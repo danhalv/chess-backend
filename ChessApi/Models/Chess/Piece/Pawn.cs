@@ -54,7 +54,7 @@ public class Pawn : IPiece
     // forward moves
     for (int i = 0; i < 2; i++)
     {
-      if (forwardTiles.Count < i || board.IsTileOccupied(forwardTiles[i]))
+      if (forwardTiles.Count <= i || board.IsTileOccupied(forwardTiles[i]))
         break;
 
       if (i < 1 || !HasMoved)

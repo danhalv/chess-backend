@@ -166,6 +166,33 @@ public class Board
     return false;
   }
 
+  public List<Move> LegalMoves(string tileStr)
+  {
+    return LegalMoves().Where(move => move.Src == Tile.StringToIndex(tileStr))
+                       .ToList();
+  }
+
+  public List<Move> LegalMoves()
+  {
+    return PlayerMoves(Turn).Where(move =>
+    {
+      var savedData = (SrcPiece: GetTile(move.Src).Piece,
+                       DstPiece: GetTile(move.Dst).Piece,
+                       PlayerTurn: Turn);
+
+      MakeMove(move);
+
+      bool isCheckAfterMove = IsCheck(savedData.PlayerTurn);
+
+      // undo move
+      Tiles[move.Src].Piece = savedData.SrcPiece;
+      Tiles[move.Dst].Piece = savedData.DstPiece;
+      Turn = savedData.PlayerTurn;
+
+      return !isCheckAfterMove;
+    }).ToList();
+  }
+
   public void MakeMove(Move move)
   {
     Tiles[move.Dst].Piece = Tiles[move.Src].Piece;
