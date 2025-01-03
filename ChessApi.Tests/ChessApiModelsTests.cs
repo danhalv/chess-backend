@@ -20,11 +20,10 @@ public class ChessApiModelsTests
 
   [Theory, MemberData(nameof(TestChessBoardStringConstructorData))]
   public void TestChessBoardStringConstructor(string boardString,
-                                              Color playerColor,
                                               string tileString,
                                               IPiece? expected)
   {
-    var board = new Board(playerColor, boardString);
+    var board = new Board(Color.White, boardString);
 
     var actual = board.GetTile(tileString).Piece;
 
@@ -54,21 +53,20 @@ public class ChessApiModelsTests
     """
     .Replace("\n", String.Empty);
 
-    yield return new object[] { boardString, Color.White, "a1", new Pawn(Color.Black) };
-    yield return new object[] { boardString, Color.White, "h8", new Pawn(Color.White) };
-    yield return new object[] { boardString, Color.White, "a3", new Pawn(Color.White) };
-    yield return new object[] { boardString, Color.Black, "a1", new Pawn(Color.Black) };
-    yield return new object[] { boardString, Color.Black, "h8", new Pawn(Color.White) };
-    yield return new object[] { boardString, Color.Black, "e5", null! };
+    yield return new object[] { boardString, "a1", new Pawn(Color.Black) };
+    yield return new object[] { boardString, "h8", new Pawn(Color.White) };
+    yield return new object[] { boardString, "a3", new Pawn(Color.White) };
+    yield return new object[] { boardString, "a1", new Pawn(Color.Black) };
+    yield return new object[] { boardString, "h8", new Pawn(Color.White) };
+    yield return new object[] { boardString, "e5", null! };
   }
 
   [Theory, MemberData(nameof(TestPossiblePawnMovesData))]
   public void TestPossiblePawnMoves(string boardString,
-                                    Color playerColor,
                                     string pawnTileStr,
                                     List<Move> expected)
   {
-    var board = new Board(playerColor, boardString);
+    var board = new Board(Color.White, boardString);
     board.GetTile("f4").Piece!.HasMoved = true;
     board.GetTile("b5").Piece!.HasMoved = true;
     ((Pawn)board.GetTile("g4").Piece!).IsEnpassantable = true;
@@ -128,19 +126,18 @@ public class ChessApiModelsTests
       new Move("b5", "c6")   // en passant capture
     };
 
-    yield return new object[] { boardString, Color.White, "b2", b2WhitePawnMoves };
-    yield return new object[] { boardString, Color.White, "g7", g7BlackPawnMoves };
-    yield return new object[] { boardString, Color.White, "f4", f4BlackPawnMoves };
-    yield return new object[] { boardString, Color.White, "b5", b5WhitePawnMoves };
+    yield return new object[] { boardString, "b2", b2WhitePawnMoves };
+    yield return new object[] { boardString, "g7", g7BlackPawnMoves };
+    yield return new object[] { boardString, "f4", f4BlackPawnMoves };
+    yield return new object[] { boardString, "b5", b5WhitePawnMoves };
   }
 
   [Theory, MemberData(nameof(TestPossibleKnightMovesData))]
   public void TestPossibleKnightMoves(string boardString,
-                                      Color playerColor,
                                       string knightTileString,
                                       List<Move> expected)
   {
-    var board = new Board(playerColor, boardString);
+    var board = new Board(Color.White, boardString);
 
     Tile knightTile = board.GetTile(knightTileString);
     List<Move> actual = knightTile.Piece!.GetMoves(board, knightTile.Index);
@@ -186,17 +183,16 @@ public class ChessApiModelsTests
       new Move("a1", "c2")
     };
 
-    yield return new object[] { boardString, Color.White, "e5", e5WhiteKnightMoves };
-    yield return new object[] { boardString, Color.White, "a1", a1BlackKnightMoves };
+    yield return new object[] { boardString, "e5", e5WhiteKnightMoves };
+    yield return new object[] { boardString, "a1", a1BlackKnightMoves };
   }
 
   [Theory, MemberData(nameof(TestPossibleBishopMovesData))]
   public void TestPossibleBishopMoves(string boardString,
-                                      Color playerColor,
                                       string bishopTileString,
                                       List<Move> expected)
   {
-    var board = new Board(playerColor, boardString);
+    var board = new Board(Color.White, boardString);
 
     Tile bishopTile = board.GetTile(bishopTileString);
     List<Move> actual = bishopTile.Piece!.GetMoves(board, bishopTile.Index);
@@ -243,17 +239,16 @@ public class ChessApiModelsTests
       new Move("h8", "f6")  // capture
     };
 
-    yield return new object[] { boardString, Color.White, "f3", f3WhiteBishopMoves };
-    yield return new object[] { boardString, Color.White, "h8", h8BlackBishopMoves };
+    yield return new object[] { boardString, "f3", f3WhiteBishopMoves };
+    yield return new object[] { boardString, "h8", h8BlackBishopMoves };
   }
 
   [Theory, MemberData(nameof(TestPossibleRookMovesData))]
   public void TestPossibleRookMoves(string boardString,
-                                    Color playerColor,
                                     string rookTileString,
                                     List<Move> expected)
   {
-    var board = new Board(playerColor, boardString);
+    var board = new Board(Color.White, boardString);
 
     Tile rookTile = board.GetTile(rookTileString);
     List<Move> actual = rookTile.Piece!.GetMoves(board, rookTile.Index);
@@ -309,17 +304,16 @@ public class ChessApiModelsTests
       new Move("f4", "c4")
     };
 
-    yield return new object[] { boardString, Color.White, "c4", c4BlackRookMoves };
-    yield return new object[] { boardString, Color.White, "f4", f4WhiteRookMoves };
+    yield return new object[] { boardString, "c4", c4BlackRookMoves };
+    yield return new object[] { boardString, "f4", f4WhiteRookMoves };
   }
 
   [Theory, MemberData(nameof(TestPossibleQueenMovesData))]
   public void TestPossibleQueenMoves(string boardString,
-                                    Color playerColor,
                                     string queenTileString,
                                     List<Move> expected)
   {
-    var board = new Board(playerColor, boardString);
+    var board = new Board(Color.White, boardString);
 
     Tile queenTile = board.GetTile(queenTileString);
     List<Move> actual = queenTile.Piece!.GetMoves(board, queenTile.Index);
@@ -373,17 +367,16 @@ public class ChessApiModelsTests
       new Move("e2", "b2")
     };
 
-    yield return new object[] { boardString, Color.White, "b2", b2WhiteQueenMoves };
-    yield return new object[] { boardString, Color.White, "e2", e2BlackQueenMoves };
+    yield return new object[] { boardString, "b2", b2WhiteQueenMoves };
+    yield return new object[] { boardString, "e2", e2BlackQueenMoves };
   }
 
   [Theory, MemberData(nameof(TestPossibleKingMovesData))]
   public void TestPossibleKingMoves(string boardString,
-                                    Color playerColor,
                                     string kingTileString,
                                     List<Move> expected)
   {
-    var board = new Board(playerColor, boardString);
+    var board = new Board(Color.White, boardString);
 
     Tile kingTile = board.GetTile(kingTileString);
     List<Move> actual = kingTile.Piece!.GetMoves(board, kingTile.Index);
@@ -444,18 +437,17 @@ public class ChessApiModelsTests
       new Move("e1", "d1")
     };
 
-    yield return new object[] { boardString, Color.White, "e8", e8BlackKingMoves };
-    yield return new object[] { boardString, Color.White, "c3", c3WhiteKingMoves };
-    yield return new object[] { boardString, Color.White, "e1", e1WhiteKingMoves };
+    yield return new object[] { boardString, "e8", e8BlackKingMoves };
+    yield return new object[] { boardString, "c3", c3WhiteKingMoves };
+    yield return new object[] { boardString, "e1", e1WhiteKingMoves };
   }
 
   [Theory, MemberData(nameof(TestChecksData))]
   public void TestChecks(string boardString,
-                         Color playerColor,
                          Color playerTurn,
                          bool expected)
   {
-    var board = new Board(playerColor, boardString);
+    var board = new Board(playerTurn, boardString);
 
     bool actual = board.IsCheck(playerTurn);
 
@@ -488,17 +480,17 @@ public class ChessApiModelsTests
     """
     .Replace("\n", String.Empty);
 
-    yield return new object[] { whiteInCheckBoardStr, Color.White, Color.White, true };
-    yield return new object[] { blackInCheckBoardStr, Color.White, Color.White, false };
-    yield return new object[] { blackInCheckBoardStr, Color.White, Color.Black, true };
+    yield return new object[] { whiteInCheckBoardStr, Color.White, true };
+    yield return new object[] { blackInCheckBoardStr, Color.White, false };
+    yield return new object[] { blackInCheckBoardStr, Color.Black, true };
   }
 
   [Theory, MemberData(nameof(TestCheckmateData))]
   public void TestCheckmate(string boardString,
-                            Color playerColor,
+                            Color playerTurn,
                             bool expected)
   {
-    var board = new Board(playerColor, boardString);
+    var board = new Board(playerTurn, boardString);
 
     bool actual = board.IsCheckmate();
 
@@ -507,10 +499,10 @@ public class ChessApiModelsTests
 
   public static IEnumerable<object[]> TestCheckmateData()
   {
-    var whiteInCheckmateBoardStr = """
+    var checkmateBoardStr = """
+    k_______
     ________
-    ________
-    ________
+    RR______
     ________
     ______rr
     ________
@@ -519,10 +511,10 @@ public class ChessApiModelsTests
     """
     .Replace("\n", String.Empty);
 
-    var whiteInCheckBoardStr = """
+    var notCheckmateBoardStr = """
+    k_______
     ________
-    ________
-    ________
+    R_______
     ________
     _______r
     ________
@@ -531,7 +523,9 @@ public class ChessApiModelsTests
     """
     .Replace("\n", String.Empty);
 
-    yield return new object[] { whiteInCheckmateBoardStr, Color.White, true };
-    yield return new object[] { whiteInCheckBoardStr, Color.White, false };
+    yield return new object[] { checkmateBoardStr, Color.White, true };
+    yield return new object[] { checkmateBoardStr, Color.Black, true };
+    yield return new object[] { notCheckmateBoardStr, Color.White, false };
+    yield return new object[] { notCheckmateBoardStr, Color.Black, false };
   }
 }

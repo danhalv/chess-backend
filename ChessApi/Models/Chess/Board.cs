@@ -44,10 +44,12 @@ public class Board
     }
   }
 
-  public Board(Color playerColor, string boardString)
+  public Board(Color playerTurn, string boardString)
   {
     Debug.Assert(boardString.Length == 64,
                  "Board string should be 64 characters.");
+
+    Turn = playerTurn;
 
     for (int i = 0; i < 64; i++)
     {
