@@ -122,17 +122,12 @@ public class Board
                                           && t.Piece.GetType() == typeof(King)
                                           && t.Piece.Color == playerColor);
 
-    var opponentTiles = Tiles.Where(t => t.Piece != null
-                                         && t.Piece.Color != playerColor);
+    var opponentColor = (playerColor == Color.White) ? Color.Black : Color.White;
 
-    var opponentMoves = opponentTiles.Aggregate(new List<Move>(),
-                                                (moves, tile) =>
-                                                {
-                                                  moves.AddRange(tile.Piece!.GetMoves(this, tile.Index));
-                                                  return moves;
-                                                });
-
-    return opponentMoves.Any(move => move.Dst == playerKingTile.Index);
+    return PlayerMoves(opponentColor).Any(move =>
+    {
+      return move.Dst == playerKingTile.Index;
+    });
   }
 
   public bool IsCheckmate()
@@ -140,18 +135,8 @@ public class Board
     if (!IsCheck())
       return false;
 
-    var playerTiles = Tiles.Where(t => t.Piece != null
-                                       && t.Piece.Color == Turn);
-
-    var playerMoves = playerTiles.Aggregate(new List<Move>(),
-                                            (moves, tile) =>
-                                            {
-                                              moves.AddRange(tile.Piece!.GetMoves(this, tile.Index));
-                                              return moves;
-                                            });
-
     // true, if all possible moves result in check
-    return playerMoves.All(move =>
+    return PlayerMoves(Turn).All(move =>
     {
       var savedData = (SrcPiece: GetTile(move.Src).Piece,
                        DstPiece: GetTile(move.Dst).Piece,
@@ -185,6 +170,19 @@ public class Board
     Tiles[move.Src].Piece = null;
 
     Turn = (Turn == Color.White) ? Color.Black : Color.White;
+  }
+
+  private List<Move> PlayerMoves(Color playerColor)
+  {
+    var playerOccupiedTiles = Tiles.Where(t => t.Piece != null
+                                               && t.Piece.Color == playerColor);
+
+    return playerOccupiedTiles.Aggregate(new List<Move>(),
+                                         (moves, tile) =>
+                                         {
+                                           moves.AddRange(tile.Piece!.GetMoves(this, tile.Index));
+                                           return moves;
+                                         });
   }
 
   public string ToString(Color playerColor = Color.White)
