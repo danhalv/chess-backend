@@ -113,12 +113,17 @@ public class Board
 
   public bool IsCheck()
   {
+    return IsCheck(Turn);
+  }
+
+  public bool IsCheck(Color playerColor)
+  {
     var playerKingTile = Tiles.First(t => t.Piece != null
                                           && t.Piece.GetType() == typeof(King)
-                                          && t.Piece.Color == Turn);
+                                          && t.Piece.Color == playerColor);
 
     var opponentTiles = Tiles.Where(t => t.Piece != null
-                                         && t.Piece.Color != Turn);
+                                         && t.Piece.Color != playerColor);
 
     var opponentMoves = opponentTiles.Aggregate(new List<Move>(),
                                                 (moves, tile) =>
@@ -128,6 +133,41 @@ public class Board
                                                 });
 
     return opponentMoves.Any(move => move.Dst == playerKingTile.Index);
+  }
+
+  public bool IsCheckmate()
+  {
+    if (!IsCheck())
+      return false;
+
+    var playerTiles = Tiles.Where(t => t.Piece != null
+                                       && t.Piece.Color == Turn);
+
+    var playerMoves = playerTiles.Aggregate(new List<Move>(),
+                                            (moves, tile) =>
+                                            {
+                                              moves.AddRange(tile.Piece!.GetMoves(this, tile.Index));
+                                              return moves;
+                                            });
+
+    // true, if all possible moves result in check
+    return playerMoves.All(move =>
+    {
+      var savedData = (SrcPiece: GetTile(move.Src).Piece,
+                       DstPiece: GetTile(move.Dst).Piece,
+                       PlayerTurn: Turn);
+
+      MakeMove(move);
+
+      bool isCheckAfterMove = IsCheck(savedData.PlayerTurn);
+
+      // undo move
+      Tiles[move.Src].Piece = savedData.SrcPiece;
+      Tiles[move.Dst].Piece = savedData.DstPiece;
+      Turn = savedData.PlayerTurn;
+
+      return isCheckAfterMove;
+    });
   }
 
   public bool IsTileOccupied(int tileIndex)

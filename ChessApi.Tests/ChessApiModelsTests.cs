@@ -452,11 +452,12 @@ public class ChessApiModelsTests
   [Theory, MemberData(nameof(TestChecksData))]
   public void TestChecks(string boardString,
                          Color playerColor,
+                         Color playerTurn,
                          bool expected)
   {
     var board = new Board(playerColor, boardString);
 
-    bool actual = board.IsCheck();
+    bool actual = board.IsCheck(playerTurn);
 
     Assert.Equal(expected, actual);
   }
@@ -475,7 +476,7 @@ public class ChessApiModelsTests
     """
     .Replace("\n", String.Empty);
 
-    var whiteNotInCheckBoardStr = """
+    var blackInCheckBoardStr = """
     ___K____
     ________
     _____P__
@@ -487,7 +488,50 @@ public class ChessApiModelsTests
     """
     .Replace("\n", String.Empty);
 
-    yield return new object[] { whiteInCheckBoardStr, Color.White, true };
-    yield return new object[] { whiteNotInCheckBoardStr, Color.White, false };
+    yield return new object[] { whiteInCheckBoardStr, Color.White, Color.White, true };
+    yield return new object[] { blackInCheckBoardStr, Color.White, Color.White, false };
+    yield return new object[] { blackInCheckBoardStr, Color.White, Color.Black, true };
+  }
+
+  [Theory, MemberData(nameof(TestCheckmateData))]
+  public void TestCheckmate(string boardString,
+                            Color playerColor,
+                            bool expected)
+  {
+    var board = new Board(playerColor, boardString);
+
+    bool actual = board.IsCheckmate();
+
+    Assert.Equal(expected, actual);
+  }
+
+  public static IEnumerable<object[]> TestCheckmateData()
+  {
+    var whiteInCheckmateBoardStr = """
+    ________
+    ________
+    ________
+    ________
+    ______rr
+    ________
+    ________
+    _______K
+    """
+    .Replace("\n", String.Empty);
+
+    var whiteInCheckBoardStr = """
+    ________
+    ________
+    ________
+    ________
+    _______r
+    ________
+    ________
+    _______K
+    """
+    .Replace("\n", String.Empty);
+
+    yield return new object[] { whiteInCheckmateBoardStr, Color.White, true };
+    yield return new object[] { whiteInCheckBoardStr, Color.White, false };
   }
 }
