@@ -3,6 +3,7 @@ using System.Net.WebSockets;
 using System.Text.Json;
 using ChessApi;
 using ChessApi.Models.Chess;
+using ChessApi.Models.WebSocketMessages;
 using Microsoft.AspNetCore.TestHost;
 
 namespace ChessApi.Tests;
@@ -10,9 +11,9 @@ namespace ChessApi.Tests;
 public class ChessApiEndpointsTests
 {
   [Fact]
-  public async void TestWebSocketMove()
+  public async void TestWebSocketMakeMoveRequest()
   {
-    var boardString = """
+    var boardStringAfterMove = """
     rnbqkbnr
     pppppppp
     ________
@@ -24,7 +25,8 @@ public class ChessApiEndpointsTests
     """
     .Replace("\n", String.Empty);
 
-    var expected = JsonSerializer.Serialize(new Board(Color.White, boardString));
+    var expected = JsonSerializer.Serialize(new Board(Color.White,
+                                                      boardStringAfterMove));
 
     var buffer = new byte[1024 * 8];
 
@@ -37,7 +39,9 @@ public class ChessApiEndpointsTests
     var wsClient = server.CreateWebSocketClient();
     var ws = await wsClient.ConnectAsync(new Uri("/ws/chessgames/1"), CancellationToken.None);
 
-    var jsonMoveStr = JsonSerializer.Serialize(new Move("h2", "h4"));
+    var makeMoveReq = new MakeMoveRequest(WebSocketRequestType.MakeMove,
+                                          new Move("h2", "h4"));
+    var jsonMoveStr = JsonSerializer.Serialize(makeMoveReq);
     buffer = System.Text.Encoding.UTF8.GetBytes(jsonMoveStr);
 
     await ws.SendAsync(new ArraySegment<byte>(buffer, 0, jsonMoveStr.Length),

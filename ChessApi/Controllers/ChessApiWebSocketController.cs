@@ -2,6 +2,7 @@ using System.Net.WebSockets;
 using System.Text.Json;
 using ChessApi.Models;
 using ChessApi.Models.Chess;
+using ChessApi.Models.WebSocketMessages;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -45,9 +46,10 @@ public class ChessApiWebSocketController : ControllerBase
 
     while (!result.CloseStatus.HasValue)
     {
-      var move = await DeserializeBufferMove(buffer, result.Count, ws);
+      var wsRequest =
+        await DeserializeWebSocketRequest(buffer, result.Count, ws);
 
-      if (move is null)
+      if (wsRequest is null)
       {
         result = await ws.ReceiveAsync(new ArraySegment<byte>(buffer),
                                        CancellationToken.None);
@@ -60,15 +62,24 @@ public class ChessApiWebSocketController : ControllerBase
       {
         board.MakeMove(m);
       }
-      board.MakeMove(move);
 
-      var jsonBoardStr = JsonSerializer.Serialize(board);
-      buffer = System.Text.Encoding.UTF8.GetBytes(jsonBoardStr);
+      switch (wsRequest.RequestType)
+      {
+        case WebSocketRequestType.MakeMove:
+          {
+            board.MakeMove(((MakeMoveRequest)wsRequest).Move);
+            var jsonBoardStr = JsonSerializer.Serialize(board);
+            buffer = System.Text.Encoding.UTF8.GetBytes(jsonBoardStr);
 
-      await ws.SendAsync(new ArraySegment<byte>(buffer, 0, jsonBoardStr.Length),
-                         result.MessageType,
-                         result.EndOfMessage,
-                         CancellationToken.None);
+            await ws.SendAsync(new ArraySegment<byte>(buffer, 0, jsonBoardStr.Length),
+                               result.MessageType,
+                               result.EndOfMessage,
+                               CancellationToken.None);
+            break;
+          }
+        default:
+          break;
+      }
 
       result = await ws.ReceiveAsync(new ArraySegment<byte>(buffer),
                                      CancellationToken.None);
@@ -77,18 +88,27 @@ public class ChessApiWebSocketController : ControllerBase
     await ws.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
   }
 
-  private async Task<Move?> DeserializeBufferMove(Byte[] buffer,
-                                                  int numBufferBytes,
-                                                  WebSocket ws)
+  private async Task<IWebSocketRequest?> DeserializeWebSocketRequest(
+      Byte[] buffer,
+      int numBufferBytes,
+      WebSocket ws)
   {
     try
     {
-      var jsonMoveStr =
+      var wsRequestJsonStr =
         System.Text.Encoding.UTF8.GetString(buffer, 0, numBufferBytes);
 
-      var move = JsonSerializer.Deserialize<Move>(jsonMoveStr);
+      var wsBaseRequest =
+        JsonSerializer.Deserialize<BaseWebSocketRequest>(wsRequestJsonStr);
 
-      return move;
+      return wsBaseRequest!.RequestType switch
+      {
+        WebSocketRequestType.MakeMove =>
+          JsonSerializer.Deserialize<MakeMoveRequest>(wsRequestJsonStr),
+        _ => throw new ArgumentException(
+               "Invalid enum value for WebSocketRequestType",
+               nameof(wsBaseRequest.RequestType)),
+      };
     }
     catch (Exception e)
     {
