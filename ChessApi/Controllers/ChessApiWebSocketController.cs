@@ -63,6 +63,12 @@ public class ChessApiWebSocketController : ControllerBase
         board.MakeMove(m);
       }
 
+      var sendResponse = async (int msgLen) =>
+        await ws.SendAsync(new ArraySegment<byte>(buffer, 0, msgLen),
+                           result.MessageType,
+                           result.EndOfMessage,
+                           CancellationToken.None);
+
       switch (wsRequest.RequestType)
       {
         case WebSocketRequestType.MakeMove:
@@ -71,10 +77,18 @@ public class ChessApiWebSocketController : ControllerBase
             var jsonBoardStr = JsonSerializer.Serialize(board);
             buffer = System.Text.Encoding.UTF8.GetBytes(jsonBoardStr);
 
-            await ws.SendAsync(new ArraySegment<byte>(buffer, 0, jsonBoardStr.Length),
-                               result.MessageType,
-                               result.EndOfMessage,
-                               CancellationToken.None);
+            await sendResponse(jsonBoardStr.Length);
+
+            break;
+          }
+        case WebSocketRequestType.GetMoves:
+          {
+            var moves = board.LegalMoves(((GetMovesRequest)wsRequest).Tile);
+            var movesJsonStr = JsonSerializer.Serialize(moves);
+            buffer = System.Text.Encoding.UTF8.GetBytes(movesJsonStr);
+
+            await sendResponse(movesJsonStr.Length);
+
             break;
           }
         default:
@@ -105,6 +119,8 @@ public class ChessApiWebSocketController : ControllerBase
       {
         WebSocketRequestType.MakeMove =>
           JsonSerializer.Deserialize<MakeMoveRequest>(wsRequestJsonStr),
+        WebSocketRequestType.GetMoves =>
+          JsonSerializer.Deserialize<GetMovesRequest>(wsRequestJsonStr),
         _ => throw new ArgumentException(
                "Invalid enum value for WebSocketRequestType",
                nameof(wsBaseRequest.RequestType)),
