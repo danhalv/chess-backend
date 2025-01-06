@@ -19,13 +19,13 @@ public class ChessApiEndpointsTests
     ________
     ________
     _______P
-    P_______
-    _PPPPPP_
+    ________
+    PPPPPPP_
     RNBQKBNR
     """
     .Replace("\n", String.Empty);
 
-    var expected = JsonSerializer.Serialize(new Board(Color.White,
+    var expected = JsonSerializer.Serialize(new Board(Color.Black,
                                                       boardStringAfterMove));
 
     var buffer = new byte[1024 * 8];
@@ -66,12 +66,12 @@ public class ChessApiEndpointsTests
   [Fact]
   public async void TestWebSocketGetMovesRequest()
   {
-    var a7BlackPawnMoves = new List<Move>()
+    var b1WhiteKnightMoves = new List<Move>()
     {
-      new Move("a7", "a6"),
-      new Move("a7", "a5")
+      new Move("b1", "c3"),
+      new Move("b1", "a3")
     };
-    var expected = JsonSerializer.Serialize(a7BlackPawnMoves);
+    var expected = JsonSerializer.Serialize(b1WhiteKnightMoves);
 
     var buffer = new byte[1024 * 8];
 
@@ -82,9 +82,9 @@ public class ChessApiEndpointsTests
     Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
     var wsClient = server.CreateWebSocketClient();
-    var ws = await wsClient.ConnectAsync(new Uri("/ws/chessgames/1"), CancellationToken.None);
+    var ws = await wsClient.ConnectAsync(new Uri("/ws/chessgames/2"), CancellationToken.None);
 
-    var getMovesReq = new GetMovesRequest(WebSocketRequestType.GetMoves, "a7");
+    var getMovesReq = new GetMovesRequest(WebSocketRequestType.GetMoves, "b1");
     var reqJsonStr = JsonSerializer.Serialize(getMovesReq);
     buffer = System.Text.Encoding.UTF8.GetBytes(reqJsonStr);
 
@@ -106,5 +106,113 @@ public class ChessApiEndpointsTests
     }
 
     Assert.Equal(movesJsonStr, expected);
+  }
+
+  [Fact]
+  public async void TestWebSocketConnectFullGame()
+  {
+    var buffer = new byte[1024 * 8];
+
+    var server = new TestServer(ChessApi.Program.CreateWebHostBuilder(new string[0]));
+    var httpClient = server.CreateClient();
+    var response = await httpClient.PostAsync("/chessgames", new ByteArrayContent(buffer));
+
+    Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+    var wsClient = server.CreateWebSocketClient();
+
+    var wsWhitePlayer = await wsClient.ConnectAsync(new Uri("/ws/chessgames/3"), CancellationToken.None);
+    Thread.Sleep(50);
+
+    var wsBlackPlayer = await wsClient.ConnectAsync(new Uri("/ws/chessgames/3"), CancellationToken.None);
+    Thread.Sleep(50);
+
+    // Try to connect third player but game is full
+    await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+      await wsClient.ConnectAsync(new Uri("/ws/chessgames/3"), CancellationToken.None));
+
+    Assert.Equal(WebSocketState.Open, wsWhitePlayer.State);
+    Assert.Equal(WebSocketState.Open, wsBlackPlayer.State);
+  }
+
+  [Fact]
+  public async void TestWebSocketMakeMoveRequestBroadcast()
+  {
+    var boardStringAfterMove = """
+    rnbqkbnr
+    pppppppp
+    ________
+    ________
+    ________
+    P_______
+    _PPPPPPP
+    RNBQKBNR
+    """
+    .Replace("\n", String.Empty);
+
+    var expected = JsonSerializer.Serialize(new Board(Color.Black,
+                                                      boardStringAfterMove));
+
+    var buffer = new byte[1024 * 8];
+    var whitePlayerBuffer = new byte[1024 * 8];
+    var blackPlayerBuffer = new byte[1024 * 8];
+    var whitePlayerReceivedBoardStr = "";
+    var blackPlayerReceivedBoardStr = "";
+
+    var server = new TestServer(ChessApi.Program.CreateWebHostBuilder(new string[0]));
+    var httpClient = server.CreateClient();
+    var response = await httpClient.PostAsync("/chessgames", new ByteArrayContent(buffer));
+
+    Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+    var wsClient = server.CreateWebSocketClient();
+
+    var wsWhitePlayer = await wsClient.ConnectAsync(new Uri("/ws/chessgames/4"), CancellationToken.None);
+    var whitePlayerThread = new Thread(async () =>
+    {
+      while (true)
+      {
+        var result = await wsWhitePlayer.ReceiveAsync(new ArraySegment<byte>(whitePlayerBuffer), CancellationToken.None);
+
+        whitePlayerReceivedBoardStr += System.Text.Encoding.UTF8.GetString(whitePlayerBuffer, 0, result.Count);
+
+        if (result.EndOfMessage)
+          break;
+      }
+    });
+    whitePlayerThread.Start();
+    Thread.Sleep(50);
+
+    var wsBlackPlayer = await wsClient.ConnectAsync(new Uri("/ws/chessgames/4"), CancellationToken.None);
+    var blackPlayerThread = new Thread(async () =>
+    {
+      while (true)
+      {
+        var result = await wsBlackPlayer.ReceiveAsync(new ArraySegment<byte>(blackPlayerBuffer), CancellationToken.None);
+
+        blackPlayerReceivedBoardStr += System.Text.Encoding.UTF8.GetString(blackPlayerBuffer, 0, result.Count);
+
+        if (result.EndOfMessage)
+          break;
+      }
+    });
+    blackPlayerThread.Start();
+    Thread.Sleep(50);
+
+    var makeMoveReq = new MakeMoveRequest(WebSocketRequestType.MakeMove,
+                                          new Move("a2", "a3"));
+    var jsonMoveStr = JsonSerializer.Serialize(makeMoveReq);
+    buffer = System.Text.Encoding.UTF8.GetBytes(jsonMoveStr);
+
+    await wsWhitePlayer.SendAsync(new ArraySegment<byte>(buffer, 0, jsonMoveStr.Length),
+                                  WebSocketMessageType.Text, true, CancellationToken.None);
+
+    Thread.Sleep(50);
+
+    whitePlayerThread.Join();
+    blackPlayerThread.Join();
+
+    Assert.Equal(expected, whitePlayerReceivedBoardStr);
+    Assert.Equal(expected, blackPlayerReceivedBoardStr);
   }
 }

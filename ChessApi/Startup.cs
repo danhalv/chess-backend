@@ -87,7 +87,7 @@ public class Startup
         {
           Id = 0,
           Turn = Color.Black,
-          ChessMoves = new List<ChessMove> { new ChessMove("a2", "a3") }
+          ChessMoves = new List<ChessMove>()
         };
 
         db.ChessGames.Add(game);
