@@ -86,7 +86,7 @@ public class Startup
         var game = new ChessGame
         {
           Id = 0,
-          Turn = Color.Black,
+          Turn = Color.White,
           ChessMoves = new List<ChessMove>()
         };
 

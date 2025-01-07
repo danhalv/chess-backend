@@ -113,7 +113,12 @@ public class ChessApiWebSocketController : ControllerBase
                 break;
             }
 
-            board.MakeMove(((MakeMoveRequest)wsRequest).Move);
+            var sentMove = ((MakeMoveRequest)wsRequest).Move;
+            board.MakeMove(sentMove);
+            chessgame.ChessMoves.Add(new ChessMove(sentMove.Src, sentMove.Dst));
+            chessgame.Turn = board.Turn;
+            await Db.SaveChangesAsync();
+
             var jsonBoardStr = JsonSerializer.Serialize(board);
             buffer = System.Text.Encoding.UTF8.GetBytes(jsonBoardStr);
 

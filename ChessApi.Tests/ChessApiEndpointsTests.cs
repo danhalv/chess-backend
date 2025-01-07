@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.WebSockets;
 using System.Text.Json;
 using ChessApi;
+using ChessApi.Models;
 using ChessApi.Models.Chess;
 using ChessApi.Models.WebSocketMessages;
 using Microsoft.AspNetCore.TestHost;
@@ -25,8 +26,9 @@ public class ChessApiEndpointsTests
     """
     .Replace("\n", String.Empty);
 
-    var expected = JsonSerializer.Serialize(new Board(Color.Black,
-                                                      boardStringAfterMove));
+    var expectedBoardStr = JsonSerializer.Serialize(new Board(Color.Black,
+                                                    boardStringAfterMove));
+    var expectedChessGameStr = "{\"id\":1,\"turn\":0,\"chessMoves\":[{\"id\":1,\"src\":15,\"dst\":31}]}";
 
     var buffer = new byte[1024 * 8];
 
@@ -60,7 +62,12 @@ public class ChessApiEndpointsTests
         break;
     }
 
-    Assert.Equal(jsonBoardStr, expected);
+    Assert.Equal(expectedBoardStr, jsonBoardStr);
+
+    var getResponse = await httpClient.GetAsync("/chessgames/1");
+    var chessgameJsonStr = await getResponse.Content.ReadAsStringAsync();
+
+    Assert.Equal(expectedChessGameStr, chessgameJsonStr);
   }
 
   [Fact]
