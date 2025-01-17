@@ -136,6 +136,15 @@ public class ChessApiWebSocketController : ControllerBase
 
             break;
           }
+        case WebSocketRequestType.GetBoard:
+          {
+            var jsonBoardStr = JsonSerializer.Serialize(board);
+            buffer = System.Text.Encoding.UTF8.GetBytes(jsonBoardStr);
+
+            await sendResponse(ws, jsonBoardStr.Length);
+
+            break;
+          }
         default:
           break;
       }
@@ -168,6 +177,8 @@ public class ChessApiWebSocketController : ControllerBase
           JsonSerializer.Deserialize<MakeMoveRequest>(wsRequestJsonStr),
         WebSocketRequestType.GetMoves =>
           JsonSerializer.Deserialize<GetMovesRequest>(wsRequestJsonStr),
+        WebSocketRequestType.GetBoard =>
+          JsonSerializer.Deserialize<GetBoardRequest>(wsRequestJsonStr),
         _ => throw new ArgumentException(
                "Invalid enum value for WebSocketRequestType",
                nameof(wsBaseRequest.RequestType)),

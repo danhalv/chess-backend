@@ -3,5 +3,6 @@ namespace ChessApi.Models.WebSocketMessages;
 public enum WebSocketRequestType
 {
   MakeMove,
-  GetMoves
+  GetMoves,
+  GetBoard
 }
