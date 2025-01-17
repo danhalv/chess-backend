@@ -10,7 +10,7 @@ public class Bishop : IPiece
   {
     Color = color;
     HasMoved = false;
-    CharRepresentation = (color == Color.White) ? 'P' : 'p';
+    CharRepresentation = (color == Color.White) ? 'B' : 'b';
   }
 
   List<Move> IPiece.GetMoves(Board board, int pieceTilePos)
