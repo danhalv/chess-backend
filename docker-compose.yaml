@@ -1,33 +1,19 @@
 services:
-  format-check:
-    build:
-      target: base
-    container_name: ChessApi_format-check
-    command: bash -c "dotnet format --verify-no-changes"
 
-  run:
+  backend:
     build:
-      target: base
-    container_name: ChessApi_run
+      target: backend
+    container_name: ChessApi_backend
     depends_on:
       - migrations
       - chess-db
     ports:
       - 8080:8080
-    command: bash -c "cd ChessApi && dotnet run"
 
-  test:
+  build:
     build:
-      target: base
-    container_name: ChessApi_test
-    command: bash -c "dotnet test"
-
-  migrations:
-    build:
-      target: migrations
-    container_name: ChessApi_migrations
-    depends_on:
-      - chess-db
+      target: build
+    container_name: ChessApi_build
 
   chess-db:
     image: postgres:latest
@@ -39,3 +25,20 @@ services:
     ports:
       - 5432:5432
     restart: always
+
+  format-check:
+    build:
+      target: format-check
+    container_name: ChessApi_format-check
+
+  migrations:
+    build:
+      target: migrations
+    container_name: ChessApi_migrations
+    depends_on:
+      - chess-db
+
+  test:
+    build:
+      target: test
+    container_name: ChessApi_test

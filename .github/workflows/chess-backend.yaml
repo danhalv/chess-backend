@@ -2,6 +2,16 @@ name: chess-backend-ci
 run-name: ${{ github.actor }} is running GitHub Actions on chess-backend commit
 on: [push]
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: builds commit
+        run: |
+          if ! docker compose up --build --abort-on-container-exit build
+          then
+            exit 1
+          fi
   format-check:
     runs-on: ubuntu-latest
     steps:
@@ -12,16 +22,6 @@ jobs:
           then
             exit 1
           fi
-  test:
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v4
-        - name: run tests on commit
-          run: |
-            if ! docker compose up --build --abort-on-container-exit test
-            then
-              exit 1
-            fi
   migrations:
       needs: test
       runs-on: ubuntu-latest
@@ -30,6 +30,17 @@ jobs:
         - name: run migrations
           run: |
             if ! docker compose up --build --abort-on-container-exit migrations
+            then
+              exit 1
+            fi
+  test:
+      needs: build
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - name: run tests on commit
+          run: |
+            if ! docker compose up --build --abort-on-container-exit test
             then
               exit 1
             fi
