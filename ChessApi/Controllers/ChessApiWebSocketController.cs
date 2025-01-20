@@ -14,6 +14,10 @@ public class ChessApiWebSocketController : ControllerBase
   private ChessDbContext? Db =>
     HttpContext.RequestServices.GetService<ChessDbContext>();
 
+  private WebSocket? Ws { get; set; } = null;
+
+  private byte[] MessageBuffer { get; set; } = new byte[1024 * 8];
+
   static readonly ConcurrentDictionary<long, (WebSocket whitePlayer, WebSocket blackPlayer)> _players =
       new ConcurrentDictionary<long, (WebSocket whitePlayer, WebSocket blackPlayer)>();
 
@@ -32,49 +36,42 @@ public class ChessApiWebSocketController : ControllerBase
       return;
     }
 
-    using var ws = await HttpContext.WebSockets.AcceptWebSocketAsync();
+    Ws = await HttpContext.WebSockets.AcceptWebSocketAsync();
 
-    await AddPlayerToGameAsync(id, ws);
-    await WebSocketHandler(id, ws);
+    await AddPlayerToGameAsync(id);
+    await WebSocketHandler(id);
   }
 
-  private async Task WebSocketHandler(long gameId, WebSocket ws)
+  private async Task WebSocketHandler(long gameId)
   {
     if (Db is null)
     {
-      await ws.CloseOutputAsync(WebSocketCloseStatus.InternalServerError,
+      await Ws!.CloseOutputAsync(WebSocketCloseStatus.InternalServerError,
                                 "Could not get ChessDbContext service",
                                 CancellationToken.None);
       return;
     }
 
-    var chessgame = await Db!.ChessGames
-                             .Include("ChessMoves")
-                             .FirstOrDefaultAsync(c => c.Id == gameId);
-
-    if (chessgame is null)
+    while (Ws!.State == WebSocketState.Open)
     {
-      await ws.CloseOutputAsync(WebSocketCloseStatus.InvalidPayloadData,
-                                "Invalid chess game id",
-                                CancellationToken.None);
-      return;
-    }
+      var clientMessage = await ReceiveClientMessageAsync();
 
-    var buffer = new byte[1024 * 8];
+      IWebSocketRequest? WsRequest =
+        await DeserializeWebSocketRequest(clientMessage);
 
-    var result = await ws.ReceiveAsync(new ArraySegment<byte>(buffer),
-                                       CancellationToken.None);
-
-    while (!result.CloseStatus.HasValue)
-    {
-      var wsRequest =
-        await DeserializeWebSocketRequest(buffer, result.Count, ws);
-
-      if (wsRequest is null)
-      {
-        result = await ws.ReceiveAsync(new ArraySegment<byte>(buffer),
-                                       CancellationToken.None);
+      if (WsRequest is null)
         continue;
+
+      var chessgame = await Db!.ChessGames
+                               .Include("ChessMoves")
+                               .FirstOrDefaultAsync(c => c.Id == gameId);
+
+      if (chessgame is null)
+      {
+        await Ws!.CloseOutputAsync(WebSocketCloseStatus.InvalidPayloadData,
+                                  "Invalid chess game id",
+                                  CancellationToken.None);
+        return;
       }
 
       var board = new Board();
@@ -84,101 +81,96 @@ public class ChessApiWebSocketController : ControllerBase
         board.MakeMove(m);
       }
 
-      var sendResponse = async (WebSocket ws, int msgLen) =>
-        await ws.SendAsync(new ArraySegment<byte>(buffer, 0, msgLen),
-                           result.MessageType,
-                           result.EndOfMessage,
-                           CancellationToken.None);
-
-      var broadcastResponse = async (int msgLen) =>
-      {
-        if (_players.TryGetValue(gameId, out (WebSocket whitePlayer, WebSocket blackPlayer) players))
-        {
-          await sendResponse(players.whitePlayer, msgLen);
-          await sendResponse(players.blackPlayer, msgLen);
-        }
-      };
-
-      switch (wsRequest.RequestType)
+      switch (WsRequest.RequestType)
       {
         case WebSocketRequestType.MakeMove:
           {
             if (_players.TryGetValue(gameId, out (WebSocket whitePlayer, WebSocket blackPlayer) players))
             {
               bool isPlayerTurn =
-                (ws == players.whitePlayer && board.Turn == Color.White)
-                || (ws == players.blackPlayer && board.Turn == Color.Black);
+                (Ws! == players.whitePlayer && board.Turn == Color.White)
+                || (Ws! == players.blackPlayer && board.Turn == Color.Black);
 
               if (!isPlayerTurn)
                 break;
             }
 
-            var sentMove = ((MakeMoveRequest)wsRequest).Move;
+            var sentMove = ((MakeMoveRequest)WsRequest).Move;
             board.MakeMove(sentMove);
-            chessgame.ChessMoves.Add(new ChessMove(sentMove.Src, sentMove.Dst));
-            chessgame.Turn = board.Turn;
-            await Db.SaveChangesAsync();
+            chessgame!.ChessMoves.Add(new ChessMove(sentMove.Src, sentMove.Dst));
+            chessgame!.Turn = board.Turn;
+            await Db!.SaveChangesAsync();
 
             var jsonBoardStr = JsonSerializer.Serialize(board);
-            buffer = System.Text.Encoding.UTF8.GetBytes(jsonBoardStr);
+            MessageBuffer = System.Text.Encoding.UTF8.GetBytes(jsonBoardStr);
 
-            await broadcastResponse(jsonBoardStr.Length);
+            await BroadcastMessage(gameId, jsonBoardStr.Length);
 
             break;
           }
         case WebSocketRequestType.GetMoves:
           {
-            var moves = board.LegalMoves(((GetMovesRequest)wsRequest).Tile);
+            var moves = board.LegalMoves(((GetMovesRequest)WsRequest).Tile);
             var movesJsonStr = JsonSerializer.Serialize(moves);
-            buffer = System.Text.Encoding.UTF8.GetBytes(movesJsonStr);
+            MessageBuffer = System.Text.Encoding.UTF8.GetBytes(movesJsonStr);
 
-            await sendResponse(ws, movesJsonStr.Length);
+            await SendMessage(Ws!, movesJsonStr.Length);
 
             break;
           }
         case WebSocketRequestType.GetBoard:
           {
             var jsonBoardStr = JsonSerializer.Serialize(board);
-            buffer = System.Text.Encoding.UTF8.GetBytes(jsonBoardStr);
+            MessageBuffer = System.Text.Encoding.UTF8.GetBytes(jsonBoardStr);
 
-            await sendResponse(ws, jsonBoardStr.Length);
+            await SendMessage(Ws!, jsonBoardStr.Length);
 
             break;
           }
         default:
           break;
       }
+    }
+  }
 
-      result = await ws.ReceiveAsync(new ArraySegment<byte>(buffer),
-                                     CancellationToken.None);
+  private async Task<string> ReceiveClientMessageAsync()
+  {
+    var chunks = new List<string>();
+
+    WebSocketReceiveResult result;
+    do
+    {
+      result = await Ws!.ReceiveAsync(new ArraySegment<byte>(MessageBuffer), CancellationToken.None);
+      chunks.Add(System.Text.Encoding.UTF8.GetString(MessageBuffer, 0, result.Count));
+    }
+    while (!result.EndOfMessage && !result.CloseStatus.HasValue);
+
+    if (result.CloseStatus.HasValue)
+    {
+      await Ws!.CloseOutputAsync(result.CloseStatus.Value,
+                                result.CloseStatusDescription,
+                                CancellationToken.None);
     }
 
-    await ws.CloseOutputAsync(result.CloseStatus.Value,
-                              result.CloseStatusDescription,
-                              CancellationToken.None);
+    return string.Concat(chunks);
   }
 
   private async Task<IWebSocketRequest?> DeserializeWebSocketRequest(
-      Byte[] buffer,
-      int numBufferBytes,
-      WebSocket ws)
+      string clientRequestStr)
   {
     try
     {
-      var wsRequestJsonStr =
-        System.Text.Encoding.UTF8.GetString(buffer, 0, numBufferBytes);
-
       var wsBaseRequest =
-        JsonSerializer.Deserialize<BaseWebSocketRequest>(wsRequestJsonStr);
+        JsonSerializer.Deserialize<BaseWebSocketRequest>(clientRequestStr);
 
       return wsBaseRequest!.RequestType switch
       {
         WebSocketRequestType.MakeMove =>
-          JsonSerializer.Deserialize<MakeMoveRequest>(wsRequestJsonStr),
+          JsonSerializer.Deserialize<MakeMoveRequest>(clientRequestStr),
         WebSocketRequestType.GetMoves =>
-          JsonSerializer.Deserialize<GetMovesRequest>(wsRequestJsonStr),
+          JsonSerializer.Deserialize<GetMovesRequest>(clientRequestStr),
         WebSocketRequestType.GetBoard =>
-          JsonSerializer.Deserialize<GetBoardRequest>(wsRequestJsonStr),
+          JsonSerializer.Deserialize<GetBoardRequest>(clientRequestStr),
         _ => throw new ArgumentException(
                "Invalid enum value for WebSocketRequestType",
                nameof(wsBaseRequest.RequestType)),
@@ -186,15 +178,51 @@ public class ChessApiWebSocketController : ControllerBase
     }
     catch (Exception e)
     {
-      buffer = System.Text.Encoding.UTF8.GetBytes(e.Message);
+      MessageBuffer = System.Text.Encoding.UTF8.GetBytes(e.Message);
 
-      await ws.SendAsync(new ArraySegment<byte>(buffer, 0, e.Message.Length),
+      await Ws!.SendAsync(new ArraySegment<byte>(MessageBuffer, 0, e.Message.Length),
                          WebSocketMessageType.Text,
                          true,
                          CancellationToken.None);
 
       return null;
     }
+  }
+
+  private async Task SendMessage(WebSocket ws, int msgLen)
+  {
+    await ws.SendAsync(new ArraySegment<byte>(MessageBuffer, 0, msgLen),
+                       WebSocketMessageType.Text,
+                       true,
+                       CancellationToken.None);
+  }
+
+  private async Task BroadcastMessage(long gameId, int msgLen)
+  {
+    if (_players.TryGetValue(gameId, out (WebSocket whitePlayer, WebSocket blackPlayer) players))
+    {
+      if (players.whitePlayer != null)
+        await SendMessage(players.whitePlayer, msgLen);
+      if (players.blackPlayer != null)
+        await SendMessage(players.blackPlayer, msgLen);
+    }
+  }
+
+  private async Task<ChessGame?> RetrieveChessGameAsync(long gameId)
+  {
+    var chessgame = await Db!.ChessGames
+                             .Include("ChessMoves")
+                             .FirstOrDefaultAsync(c => c.Id == gameId);
+
+    if (chessgame is null)
+    {
+      await Ws!.CloseOutputAsync(WebSocketCloseStatus.InvalidPayloadData,
+                                "Invalid chess game id",
+                                CancellationToken.None);
+      return null;
+    }
+
+    return chessgame;
   }
 
   private async Task<bool> IsGameFullAsync(long gameId)
@@ -208,7 +236,7 @@ public class ChessApiWebSocketController : ControllerBase
     return false;
   }
 
-  private async Task<bool> AddPlayerToGameAsync(long gameId, WebSocket ws)
+  private async Task<bool> AddPlayerToGameAsync(long gameId)
   {
     if (await IsGameFullAsync(gameId))
       return false;
@@ -216,13 +244,13 @@ public class ChessApiWebSocketController : ControllerBase
     if (_players.TryGetValue(gameId, out (WebSocket whitePlayer, WebSocket blackPlayer) players))
     {
       if (_players.TryUpdate(gameId,
-                             (players.whitePlayer, ws),
+                             (players.whitePlayer, Ws!),
                              (players.whitePlayer, null)))
         return true;
     }
     else
     {
-      if (_players.TryAdd(gameId, (ws, null)))
+      if (_players.TryAdd(gameId, (Ws!, null)))
         return true;
     }
 
