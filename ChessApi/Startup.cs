@@ -45,6 +45,10 @@ public class Startup
 
     app.UseRouting();
 
+    app.UseCors(appBuilder => appBuilder.AllowAnyOrigin()
+                                        .AllowAnyHeader()
+                                        .AllowAnyMethod());
+
     app.UseEndpoints(e =>
     {
       e.MapControllers();

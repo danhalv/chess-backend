@@ -31,6 +31,16 @@ services:
       target: format-check
     container_name: ChessApi_format-check
 
+  frontend:
+    image: httpd:2.4
+    container_name: ChessApi_frontend
+    depends_on:
+      - backend
+    ports:
+      - 8000:80
+    volumes:
+      - ./frontend:/usr/local/apache2/htdocs
+
   migrations:
     build:
       target: migrations

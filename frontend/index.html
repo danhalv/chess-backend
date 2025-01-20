@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <button id="playButton" onclick="myFunction()">Play</button>
+
+  <script>
+    let gameId = -1;
+
+    async function myFunction() {
+
+      const result = await fetch("http://localhost:8080/chessgames/", {
+        method: "POST"
+      });
+
+      data = await result.json();
+
+      console.log('data: ', data);
+
+      gameId = data.id;
+
+      console.log('game id: ', gameId)
+
+      window.location.href = "html/game.html?id="+gameId;
+    }
+  </script>
+</html>

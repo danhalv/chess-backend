@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title></title>
+        <meta charset="UTF-8">
+        <style>
+            .chess-board { border-spacing: 0; border-collapse: collapse;
+                           text-align: center; }
+            .chess-board th { padding: .5em; }
+            .chess-board td { border: 1px solid; width: 2em; height: 2em; }
+            .chess-board .light { background: #eee; }
+            .chess-board .dark { background: #a9a9a9; }
+            .chess-board .blue { background: #33c1ff; }
+        </style>
+    </head>
+    <body>
+    </body>
+
+  <script>
+
+    drawBoard();
+
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    gameId = urlParams.get('id');
+
+    var selectedTile = -1;
+    var legalMoves = [];
+
+    const socket = new WebSocket('ws://localhost:8080/ws/chessgames/'+gameId);
+
+    socket.onopen = function(event) {
+      console.log("opened connection");
+
+      // GetBoardRequest
+      var data = '{"RequestType":2}';
+      sendMessage(data);
+    };
+
+    socket.onmessage = function(event) {
+      console.log("Received: ", event.data);
+      var json = JSON.parse(event.data.toString());
+
+      if (json instanceof Array)
+        setLegalMoves(json);
+      else if (json instanceof Object) {
+        setTileColor();
+        resetTiles();
+        drawPieces(json);
+      }
+    };
+
+    socket.onclose = function(event) {
+      // Handle connection close
+    };
+
+    socket.onerror = function(error) {
+      console.log('error: ', error);
+    };
+
+    function sendMessage(message) {
+      console.log('Sending message: ', message);
+      socket.send(message);
+    }
+
+    function tileIndexToStr(index) {
+      if (index >= 0 && index < 64) {
+          let column = String.fromCharCode('a'.charCodeAt(0) + (index % 8)); // Calculate column (a-h)
+          let row = Math.floor(index / 8) + 1; // Calculate row (1-8)
+          return column + row;
+      } else {
+          throw new Error("Index must be between 0 and 63");
+      }
+    }
+
+    function handleClick(tileElement) {
+
+      // handle move
+      const tileIndex = Number(tileElement.id.replace('tile', ''));
+      if (legalMoves.includes(tileIndex)) {
+        makeMove(selectedTile, tileIndex);
+        return;
+      }
+
+      // reset tile colors
+      setTileColor();
+
+      selectedTile = Number(tileElement.id.replace('tile', ''));
+      tileElement.setAttribute('class', 'blue');
+
+      // return if pieceless tile
+      if (tileElement.getAttribute('tag') === 'empty') {
+        return;
+      }
+
+      var tileStr = tileIndexToStr(tileIndex);
+      var data = '{"RequestType":1,"Tile":"'+tileStr+'"}';
+      sendMessage(data);
+    }
+
+    function makeMove(src, dst) {
+      // reset temporaries
+      selectedTile = -1;
+      legalMoves = [];
+
+      const obj =
+      {
+        RequestType: 0,
+        Move: {
+          Src: src,
+          Dst: dst
+        }
+      };
+
+      var data = JSON.stringify(obj, null, 2);
+      sendMessage(data);
+    }
+
+    function setLegalMoves(legalMovesJson) {
+
+      legalMoves = [];
+
+      for (var i = 0; i < legalMovesJson.length; i++) {
+
+        const dstTileIndex = legalMovesJson[i].Dst;
+
+        var tileElement = document.getElementById('tile'+dstTileIndex);
+
+        tileElement.setAttribute('class', 'blue');
+
+        legalMoves.push(dstTileIndex);
+      }
+    }
+
+    function drawPieces(boardJson) {
+      for (var i = 0; i < boardJson.Tiles.length; i++) {
+
+        const piece = boardJson.Tiles[i].Piece;
+
+        var tile = document.getElementById('tile'+i);
+
+        if (piece == null) {
+          tile.setAttribute('tag', 'empty');
+        }
+        else {
+          tile.setAttribute('tag', 'tileWithPiece');
+
+          const fontSize = 5;
+
+          switch (piece.CharRepresentation) {
+            case 'b':
+              tile.innerHTML = '<font size="'+fontSize+'">&#9821;</font>';
+              break;
+            case 'B':
+              tile.innerHTML = '<font size="'+fontSize+'">&#9815;</font>';
+              break;
+            case 'k':
+              tile.innerHTML = '<font size="'+fontSize+'">&#9818;</font>';
+              break;
+            case 'K':
+              tile.innerHTML = '<font size="'+fontSize+'">&#9812;</font>';
+              break;
+            case 'n':
+              tile.innerHTML = '<font size="'+fontSize+'">&#9822;</font>';
+              break;
+            case 'N':
+              tile.innerHTML = '<font size="'+fontSize+'">&#9816;</font>';
+              break;
+            case 'p':
+              tile.innerHTML = '<font size="'+fontSize+'">&#9823;</font>';
+              break;
+            case 'P':
+              tile.innerHTML = '<font size="'+fontSize+'">&#9817;</font>';
+              break;
+            case 'r':
+              tile.innerHTML = '<font size="'+fontSize+'">&#9820;</font>';
+              break;
+            case 'R':
+              tile.innerHTML = '<font size="'+fontSize+'">&#9814;</font>';
+              break;
+            case 'q':
+              tile.innerHTML = '<font size="'+fontSize+'">&#9819;</font>';
+              break;
+            case 'Q':
+              tile.innerHTML = '<font size="'+fontSize+'">&#9813;</font>';
+              break;
+            default:
+              break;
+          }
+        }
+      }
+    }
+
+    function resetTiles() {
+      for (var ri = 0; ri < 8; ri++) {
+        for (var ci = 0; ci < 8; ci++) {
+
+          const tileId = ((7 - ri) * 8) + ci;
+          var tileElement = document.getElementById('tile'+tileId);
+
+          tileElement.innerHTML = '<font></font>';
+          tileElement.setAttribute('tag', 'empty');
+        }
+      }
+    }
+
+    function setTileColor() {
+      for (var ri = 0; ri < 8; ri++) {
+        for (var ci = 0; ci < 8; ci++) {
+
+          const tileId = ((7 - ri) * 8) + ci;
+          var tileElement = document.getElementById('tile'+tileId);
+
+          if (ri % 2 == 0) {
+            if (ci % 2 == 0)
+              tileElement.setAttribute('class', 'light');
+            else
+              tileElement.setAttribute('class', 'dark');
+          }
+          else {
+            if (ci % 2 == 0)
+              tileElement.setAttribute('class', 'dark');
+            else
+              tileElement.setAttribute('class', 'light');
+          }
+        }
+      }
+    }
+
+    function drawBoard() {
+
+      table = document.createElement('table');
+      table.setAttribute('class', 'chess-board');
+
+      for (var ri = 0; ri < 8; ri++) {
+
+        row = table.insertRow(ri);
+
+        for (var ci = 0; ci < 8; ci++) {
+
+          cell = row.insertCell(ci);
+          tileId = ((7 - ri) * 8) + ci;
+          cell.setAttribute('id', 'tile'+tileId);
+          cell.addEventListener('click', function() {
+            handleClick(this);
+          });
+        }
+
+        headerCell = row.insertCell(8);
+        headerCell.outerHTML = '<th>'+(8-ri)+'</th>';
+      }
+
+      rowHeader = table.insertRow(8);
+
+      for (var ci = 0; ci < 8; ci++) {
+        headerCell = rowHeader.insertCell(ci);
+        headerCell.outerHTML = '<th>'+String.fromCharCode(65+ci)+'</th>';
+      }
+
+      document.body.appendChild(table);
+
+      setTileColor();
+    }
+  </script>
+</html>
