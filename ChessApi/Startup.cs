@@ -1,6 +1,4 @@
-using ChessApi.Controllers;
 using ChessApi.Models;
-using ChessApi.Models.Chess;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChessApi;
@@ -49,56 +47,9 @@ public class Startup
                                         .AllowAnyHeader()
                                         .AllowAnyMethod());
 
-    app.UseEndpoints(e =>
+    app.UseEndpoints(endpoints =>
     {
-      e.MapControllers();
-
-      e.MapGet("/", () => "Hello World!");
-
-      e.MapGet("/chessgames", async (ChessDbContext db) =>
-          await db.ChessGames
-                  .Include("ChessMoves")
-                  .ToListAsync());
-
-      e.MapGet("/chessgames/{id}", async (int id, ChessDbContext db) =>
-          await db.ChessGames
-                  .Include("ChessMoves")
-                  .FirstOrDefaultAsync(c => c.Id == id)
-            is ChessGame game
-              ? Results.Ok(game)
-              : Results.NotFound());
-
-      e.MapGet("/chessgames/{id}/board", async (int id, ChessDbContext db) =>
-      {
-        var game = await db.ChessGames
-                           .Include("ChessMoves")
-                           .FirstOrDefaultAsync(c => c.Id == id);
-
-        if (game is null)
-          return Results.NotFound();
-
-        var board = new Board();
-
-        foreach (var move in game.ChessMoves)
-          board.MakeMove(move);
-
-        return Results.Text(board.ToString());
-      });
-
-      e.MapPost("/chessgames", async (ChessDbContext db) =>
-      {
-        var game = new ChessGame
-        {
-          Id = 0,
-          Turn = Color.White,
-          ChessMoves = new List<ChessMove>()
-        };
-
-        db.ChessGames.Add(game);
-        await db.SaveChangesAsync();
-
-        return Results.Created($"/chessgames/{game.Id}", game);
-      });
+      endpoints.MapControllers();
     });
   }
 }

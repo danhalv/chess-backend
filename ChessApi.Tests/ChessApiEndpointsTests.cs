@@ -34,7 +34,7 @@ public class ChessApiEndpointsTests
 
     var server = new TestServer(ChessApi.Program.CreateWebHostBuilder(new string[0]));
     var httpClient = server.CreateClient();
-    var response = await httpClient.PostAsync("/chessgames", new ByteArrayContent(buffer));
+    var response = await httpClient.PostAsync("/api/chessgames", new ByteArrayContent(buffer));
 
     Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
@@ -64,7 +64,7 @@ public class ChessApiEndpointsTests
 
     Assert.Equal(expectedBoardStr, jsonBoardStr);
 
-    var getResponse = await httpClient.GetAsync("/chessgames/1");
+    var getResponse = await httpClient.GetAsync("/api/chessgames/1");
     var chessgameJsonStr = await getResponse.Content.ReadAsStringAsync();
 
     Assert.Equal(expectedChessGameStr, chessgameJsonStr);
@@ -84,7 +84,7 @@ public class ChessApiEndpointsTests
 
     var server = new TestServer(ChessApi.Program.CreateWebHostBuilder(new string[0]));
     var httpClient = server.CreateClient();
-    var response = await httpClient.PostAsync("/chessgames", new ByteArrayContent(buffer));
+    var response = await httpClient.PostAsync("/api/chessgames", new ByteArrayContent(buffer));
 
     Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
@@ -122,7 +122,7 @@ public class ChessApiEndpointsTests
 
     var server = new TestServer(ChessApi.Program.CreateWebHostBuilder(new string[0]));
     var httpClient = server.CreateClient();
-    var response = await httpClient.PostAsync("/chessgames", new ByteArrayContent(buffer));
+    var response = await httpClient.PostAsync("/api/chessgames", new ByteArrayContent(buffer));
 
     Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
@@ -168,7 +168,7 @@ public class ChessApiEndpointsTests
 
     var server = new TestServer(ChessApi.Program.CreateWebHostBuilder(new string[0]));
     var httpClient = server.CreateClient();
-    var response = await httpClient.PostAsync("/chessgames", new ByteArrayContent(buffer));
+    var response = await httpClient.PostAsync("/api/chessgames", new ByteArrayContent(buffer));
 
     Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
