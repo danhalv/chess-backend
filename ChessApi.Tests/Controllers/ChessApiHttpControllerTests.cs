@@ -4,29 +4,21 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using ChessApi.Models;
 using ChessApi.Models.Chess;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace ChessApi.Tests.Controllers;
 
-public class ChessApiHttpControllerTests
+public class ChessApiHttpControllerTests : ChessApiControllerTests
 {
-  private readonly HttpClient _client;
-  private readonly TestServer _server;
-
   public ChessApiHttpControllerTests()
-  {
-    var serverArgs = new string[0];
-    _server = new TestServer(ChessApi.Program.CreateWebHostBuilder(serverArgs));
-    _client = _server.CreateClient();
-  }
+    : base()
+  { }
 
   [Fact]
   public async Task CreateChessGame_Returns_Created_Game()
   {
     // Act
-    var response = await _client.PostAsync("/api/chessgames", null);
+    var response = await _httpClient.PostAsync("/api/chessgames", null);
 
     // Assert
     Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -38,7 +30,7 @@ public class ChessApiHttpControllerTests
   public async Task GetChessGame_Returns_Game_With_Id()
   {
     // Arrange: Create new game
-    var createResponse = await _client.PostAsync("/api/chessgames/", null);
+    var createResponse = await _httpClient.PostAsync("/api/chessgames/", null);
 
     // Assert: Game is created
     Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
@@ -47,7 +39,7 @@ public class ChessApiHttpControllerTests
     var gameId = ExtractGameId(createResponseContentString);
 
     // Act: Retrieve game by id
-    var getResponse = await _client.GetAsync($"/api/chessgames/{gameId}");
+    var getResponse = await _httpClient.GetAsync($"/api/chessgames/{gameId}");
 
     // Assert: Created game is retrieved
     getResponse.EnsureSuccessStatusCode();
@@ -64,8 +56,8 @@ public class ChessApiHttpControllerTests
   public async Task GetChessGames_Returns_All_Games()
   {
     // Arrange: Create new games
-    var createResponse1 = await _client.PostAsync("/api/chessgames/", null);
-    var createResponse2 = await _client.PostAsync("/api/chessgames/", null);
+    var createResponse1 = await _httpClient.PostAsync("/api/chessgames/", null);
+    var createResponse2 = await _httpClient.PostAsync("/api/chessgames/", null);
 
     // Assert: Games are created
     Assert.Equal(HttpStatusCode.Created, createResponse1.StatusCode);
@@ -76,7 +68,7 @@ public class ChessApiHttpControllerTests
       await createResponse2.Content.ReadAsStringAsync();
 
     // Act: Retrieve all games (including the created ones above)
-    var getResponse = await _client.GetAsync("/api/chessgames/");
+    var getResponse = await _httpClient.GetAsync("/api/chessgames/");
 
     // Assert: All games are retrieved
     var getResponseContentString =
@@ -86,11 +78,5 @@ public class ChessApiHttpControllerTests
     Assert.Equal(JsonValueKind.Array, getResponseJson.ValueKind);
     Assert.Contains(createResponse1ContentString, getResponseContentString);
     Assert.Contains(createResponse2ContentString, getResponseContentString);
-  }
-
-  private long ExtractGameId(string responseString)
-  {
-    var responseJson = JsonSerializer.Deserialize<dynamic>(responseString);
-    return responseJson.GetProperty("id").GetInt64();
   }
 }
