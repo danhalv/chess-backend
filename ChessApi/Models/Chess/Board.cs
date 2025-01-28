@@ -7,6 +7,7 @@ public class Board
   // Represents board. Index 0 starts at 'a1' tile.
   public Tile[] Tiles { get; private set; } = new Tile[64];
   public Color Turn { get; private set; } = Color.White;
+  private Dictionary<int, IPiece?> MoveData = new Dictionary<int, IPiece?>();
 
   public Board()
   {
@@ -140,18 +141,12 @@ public class Board
     // true, if all possible moves result in check
     return PlayerMoves(Turn).All(move =>
     {
-      var savedData = (SrcPiece: GetTile(move.Src).Piece,
-                       DstPiece: GetTile(move.Dst).Piece,
-                       PlayerTurn: Turn);
-
       MakeMove(move);
 
-      bool isCheckAfterMove = IsCheck(savedData.PlayerTurn);
+      var player = (Turn == Color.White) ? Color.Black : Color.White;
+      bool isCheckAfterMove = IsCheck(player);
 
-      // undo move
-      Tiles[move.Src].Piece = savedData.SrcPiece;
-      Tiles[move.Dst].Piece = savedData.DstPiece;
-      Turn = savedData.PlayerTurn;
+      UndoLatestMove();
 
       return isCheckAfterMove;
     });
@@ -176,27 +171,79 @@ public class Board
   {
     return PlayerMoves(Turn).Where(move =>
     {
-      var savedData = (SrcPiece: GetTile(move.Src).Piece,
-                       DstPiece: GetTile(move.Dst).Piece,
-                       PlayerTurn: Turn);
-
       MakeMove(move);
 
-      bool isCheckAfterMove = IsCheck(savedData.PlayerTurn);
+      var player = (Turn == Color.White) ? Color.Black : Color.White;
+      bool isCheckAfterMove = IsCheck(player);
 
-      // undo move
-      Tiles[move.Src].Piece = savedData.SrcPiece;
-      Tiles[move.Dst].Piece = savedData.DstPiece;
-      Turn = savedData.PlayerTurn;
+      UndoLatestMove();
 
       return !isCheckAfterMove;
     }).ToList();
   }
 
+  public bool IsCastlingMove(Move move)
+  {
+    var king = GetTile(move.Src).Piece as King;
+    var rook = GetTile(move.Dst).Piece as Rook;
+
+    if (king == null || rook == null)
+      return false;
+
+    bool hasMoved = king.HasMoved || rook.HasMoved;
+    bool isSameColor = king.Color == rook.Color;
+
+    return !hasMoved && isSameColor;
+  }
+
   public void MakeMove(Move move)
   {
-    Tiles[move.Dst].Piece = Tiles[move.Src].Piece;
-    Tiles[move.Src].Piece = null;
+    // save new move data
+    MoveData = new Dictionary<int, IPiece?>();
+
+    if (IsCastlingMove(move))
+    {
+      var king = Tiles[move.Src].Piece;
+      var rook = Tiles[move.Dst].Piece;
+      var tileDiff = move.Src - move.Dst; // diff king to rook
+      if (tileDiff < 0)
+      {
+        MoveData.Add(move.Src + 2, Tiles[move.Src + 2].Piece);
+        MoveData.Add(move.Dst - 2, Tiles[move.Dst - 2].Piece);
+        Tiles[move.Src + 2].Piece = king;
+        Tiles[move.Dst - 2].Piece = rook;
+      }
+      else
+      {
+        MoveData.Add(move.Src - 2, Tiles[move.Src - 2].Piece);
+        MoveData.Add(move.Dst + 3, Tiles[move.Dst + 3].Piece);
+        Tiles[move.Src - 2].Piece = king;
+        Tiles[move.Dst + 3].Piece = rook;
+      }
+      MoveData.Add(move.Src, Tiles[move.Src].Piece);
+      MoveData.Add(move.Dst, Tiles[move.Dst].Piece);
+      Tiles[move.Src].Piece = null;
+      Tiles[move.Dst].Piece = null;
+    }
+    else
+    {
+      MoveData.Add(move.Src, Tiles[move.Src].Piece);
+      MoveData.Add(move.Dst, Tiles[move.Dst].Piece);
+      Tiles[move.Dst].Piece = Tiles[move.Src].Piece;
+      Tiles[move.Src].Piece = null;
+    }
+
+    Turn = (Turn == Color.White) ? Color.Black : Color.White;
+  }
+
+  public void UndoLatestMove()
+  {
+    foreach (var entry in MoveData)
+    {
+      int index = entry.Key;
+      IPiece? piece = entry.Value;
+      Tiles[index].Piece = piece;
+    }
 
     Turn = (Turn == Color.White) ? Color.Black : Color.White;
   }

@@ -408,7 +408,7 @@ public class ChessApiModelsTests
 
     var e8BlackKingMoves = new List<Move>
     {
-      new Move("e8", "c8"), // castling move
+      new Move("e8", "a8"), // castling move
       new Move("e8", "d8"),
       new Move("e8", "d7"),
       new Move("e8", "e7"),
@@ -429,7 +429,7 @@ public class ChessApiModelsTests
 
     var e1WhiteKingMoves = new List<Move>()
     {
-      new Move("e1", "g1"), // castling move
+      new Move("e1", "h1"), // castling move
       new Move("e1", "f1"),
       new Move("e1", "f2"),
       new Move("e1", "e2"),
@@ -440,6 +440,94 @@ public class ChessApiModelsTests
     yield return new object[] { boardString, "e8", e8BlackKingMoves };
     yield return new object[] { boardString, "c3", c3WhiteKingMoves };
     yield return new object[] { boardString, "e1", e1WhiteKingMoves };
+  }
+
+  [Theory, MemberData(nameof(TestCastlingLegalMovesData))]
+  public void TestCastlingLegalMoves(string boardString,
+                                     Color playerTurn,
+                                     string kingTile,
+                                     Move castlingMove)
+  {
+    var board = new Board(playerTurn, boardString);
+
+    var legalMoves = board.LegalMoves(kingTile);
+
+    Assert.Contains(castlingMove, legalMoves);
+  }
+
+  public static IEnumerable<object[]> TestCastlingLegalMovesData()
+  {
+    var boardString = """
+    r___k__r
+    ________
+    ________
+    ________
+    ________
+    ________
+    ________
+    R___K__R
+    """
+    .Replace("\n", String.Empty);
+
+    // white kingside castling
+    yield return new object[] { boardString, Color.White, "e1", new Move("e1", "h1") };
+
+    // white queenside castling
+    yield return new object[] { boardString, Color.White, "e1", new Move("e1", "a1") };
+
+    // black kingside castling
+    yield return new object[] { boardString, Color.Black, "e8", new Move("e8", "h8") };
+
+    // black queenside castling
+    yield return new object[] { boardString, Color.Black, "e8", new Move("e8", "a8") };
+  }
+
+  [Theory, MemberData(nameof(TestCastlingMovesData))]
+  public void TestCastlingMoves(string boardString,
+                                string oldKingTile,
+                                string newKingTile,
+                                string oldRookTile,
+                                string newRookTile,
+                                Move castlingMove)
+  {
+    var board = new Board(Color.White, boardString);
+
+    var kingBeforeMove = board.GetTile(oldKingTile).Piece;
+    var rookBeforeMove = board.GetTile(oldRookTile).Piece;
+
+    board.MakeMove(castlingMove);
+
+    var kingAfterMove = board.GetTile(newKingTile).Piece;
+    var rookAfterMove = board.GetTile(newRookTile).Piece;
+    Assert.True(Object.ReferenceEquals(kingBeforeMove, kingAfterMove));
+    Assert.True(Object.ReferenceEquals(rookBeforeMove, rookAfterMove));
+  }
+
+  public static IEnumerable<object[]> TestCastlingMovesData()
+  {
+    var boardString = """
+    r___k__r
+    ________
+    ________
+    ________
+    ________
+    ________
+    ________
+    R___K__R
+    """
+    .Replace("\n", String.Empty);
+
+    // white kingside castling
+    yield return new object[] { boardString, "e1", "g1", "h1", "f1", new Move("e1", "h1") };
+
+    // white queenside castling
+    yield return new object[] { boardString, "e1", "c1", "a1", "d1", new Move("e1", "a1") };
+
+    // black kingside castling
+    yield return new object[] { boardString, "e8", "g8", "h8", "f8", new Move("e8", "h8") };
+
+    // black queenside castling
+    yield return new object[] { boardString, "e8", "c8", "a8", "d8", new Move("e8", "a8") };
   }
 
   [Theory, MemberData(nameof(TestChecksData))]
