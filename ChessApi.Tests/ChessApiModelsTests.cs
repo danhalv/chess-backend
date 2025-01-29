@@ -681,4 +681,43 @@ public class ChessApiModelsTests
     yield return new object[] { boardStr, Color.Black, "", blackLegalMoves };
     yield return new object[] { blockingCheckBoardStr, Color.White, "b7", b7WhiteQueenLegalMoves };
   }
+
+  [Theory, MemberData(nameof(TestPromotionMovesData))]
+  public void TestPromotionMoves(string boardString,
+                                      Color playerTurn,
+                                      string pawnTile,
+                                      Move promotionMove)
+  {
+    var board = new Board(playerTurn, boardString);
+
+    var pawn = board.GetTile(pawnTile).Piece;
+    var pawnMoves = pawn.GetMoves(board, Tile.StringToIndex(pawnTile));
+
+    Assert.Contains(promotionMove, pawnMoves);
+
+    board.MakeMove(promotionMove);
+
+    Assert.IsType<Queen>(board.GetTile(promotionMove.Dst).Piece);
+  }
+
+  public static IEnumerable<object[]> TestPromotionMovesData()
+  {
+    var boardString = """
+    ________
+    P_______
+    ________
+    P_______
+    ________
+    ________
+    p_______
+    ________
+    """
+    .Replace("\n", String.Empty);
+
+    // white promotion
+    yield return new object[] { boardString, Color.White, "a7", new PromotionMove("a7", "a8") };
+
+    // black promotion
+    yield return new object[] { boardString, Color.Black, "a2", new PromotionMove("a2", "a1") };
+  }
 }

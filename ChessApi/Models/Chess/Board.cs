@@ -211,6 +211,16 @@ public class Board
       Tiles[move.Src].Piece = null;
       Tiles[move.Dst].Piece = null;
     }
+    else if (move is PromotionMove)
+    {
+      var piecePromotion = new Queen(Turn);
+      piecePromotion.HasMoved = true;
+
+      MoveData.Add(move.Src, Tiles[move.Src].Piece);
+      MoveData.Add(move.Dst, Tiles[move.Dst].Piece);
+      Tiles[move.Dst].Piece = piecePromotion;
+      Tiles[move.Src].Piece = null;
+    }
     else
     {
       MoveData.Add(move.Src, Tiles[move.Src].Piece);

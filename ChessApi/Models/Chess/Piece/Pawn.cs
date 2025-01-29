@@ -58,7 +58,17 @@ public class Pawn : IPiece
         break;
 
       if (i < 1 || !HasMoved)
-        moves.Add(new Move(pieceTilePos, forwardTiles[i]));
+      {
+        if ((this.Color == Color.White && Tile.Row(forwardTiles[i]) == 7)
+          || (this.Color == Color.Black && Tile.Row(forwardTiles[i]) == 0))
+        {
+          moves.Add(new PromotionMove(pieceTilePos, forwardTiles[i]));
+        }
+        else
+        {
+          moves.Add(new Move(pieceTilePos, forwardTiles[i]));
+        }
+      }
     }
 
     // en passant capture moves
