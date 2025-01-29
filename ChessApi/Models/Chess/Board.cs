@@ -7,7 +7,8 @@ public class Board
   // Represents board. Index 0 starts at 'a1' tile.
   public Tile[] Tiles { get; private set; } = new Tile[64];
   public Color Turn { get; private set; } = Color.White;
-  private Dictionary<int, IPiece?> MoveData = new Dictionary<int, IPiece?>();
+  private Dictionary<int, (IPiece? Piece, bool HasMoved)> MoveData =
+    new Dictionary<int, (IPiece?, bool)>();
 
   public Board()
   {
@@ -185,29 +186,40 @@ public class Board
   public void MakeMove(Move move)
   {
     // save new move data
-    MoveData = new Dictionary<int, IPiece?>();
+    MoveData = new Dictionary<int, (IPiece?, bool)>();
+
+    void addMoveData(int tileIndex)
+    {
+      IPiece? piece = Tiles[tileIndex].Piece;
+      bool hasMoved = piece?.HasMoved ?? false;
+      MoveData.Add(tileIndex, (piece, hasMoved));
+    }
 
     if (move is CastlingMove)
     {
       var king = Tiles[move.Src].Piece;
       var rook = Tiles[move.Dst].Piece;
+      addMoveData(move.Src);
+      addMoveData(move.Dst);
       var tileDiff = move.Src - move.Dst; // diff king to rook
       if (tileDiff < 0)
       {
-        MoveData.Add(move.Src + 2, Tiles[move.Src + 2].Piece);
-        MoveData.Add(move.Dst - 2, Tiles[move.Dst - 2].Piece);
+        addMoveData(move.Src + 2);
+        addMoveData(move.Dst - 2);
         Tiles[move.Src + 2].Piece = king;
         Tiles[move.Dst - 2].Piece = rook;
+        king.HasMoved = true;
+        rook.HasMoved = true;
       }
       else
       {
-        MoveData.Add(move.Src - 2, Tiles[move.Src - 2].Piece);
-        MoveData.Add(move.Dst + 3, Tiles[move.Dst + 3].Piece);
+        addMoveData(move.Src - 2);
+        addMoveData(move.Dst + 3);
         Tiles[move.Src - 2].Piece = king;
         Tiles[move.Dst + 3].Piece = rook;
+        king.HasMoved = true;
+        rook.HasMoved = true;
       }
-      MoveData.Add(move.Src, Tiles[move.Src].Piece);
-      MoveData.Add(move.Dst, Tiles[move.Dst].Piece);
       Tiles[move.Src].Piece = null;
       Tiles[move.Dst].Piece = null;
     }
@@ -216,17 +228,18 @@ public class Board
       var piecePromotion = new Queen(Turn);
       piecePromotion.HasMoved = true;
 
-      MoveData.Add(move.Src, Tiles[move.Src].Piece);
-      MoveData.Add(move.Dst, Tiles[move.Dst].Piece);
+      addMoveData(move.Src);
+      addMoveData(move.Dst);
       Tiles[move.Dst].Piece = piecePromotion;
       Tiles[move.Src].Piece = null;
     }
     else
     {
-      MoveData.Add(move.Src, Tiles[move.Src].Piece);
-      MoveData.Add(move.Dst, Tiles[move.Dst].Piece);
+      addMoveData(move.Src);
+      addMoveData(move.Dst);
       Tiles[move.Dst].Piece = Tiles[move.Src].Piece;
       Tiles[move.Src].Piece = null;
+      Tiles[move.Dst].Piece.HasMoved = true;
     }
 
     Turn = (Turn == Color.White) ? Color.Black : Color.White;
@@ -237,7 +250,13 @@ public class Board
     foreach (var entry in MoveData)
     {
       int index = entry.Key;
-      IPiece? piece = entry.Value;
+      (IPiece? piece, bool hasMoved) = entry.Value;
+
+      if (piece != null)
+      {
+        piece.HasMoved = hasMoved;
+      }
+
       Tiles[index].Piece = piece;
     }
 

@@ -74,8 +74,11 @@ public class ChessApiWebSocketControllerTests : ChessApiControllerTests
     RNBQKBNR
     """
     .Replace("\n", String.Empty);
-    var boardJsonAfterMove = JsonSerializer.Serialize(new Board(Color.Black,
-                                                      boardStringAfterMove));
+    var boardAfterMove = new Board(Color.Black, boardStringAfterMove);
+    var movedPiece = boardAfterMove.GetTile("h4").Piece;
+    Assert.NotNull(movedPiece);
+    movedPiece.HasMoved = true;
+    var boardJsonAfterMove = JsonSerializer.Serialize(boardAfterMove);
     Assert.Equal(boardJsonAfterMove, whitePlayerReceivedMessage);
     Assert.Equal(boardJsonAfterMove, blackPlayerReceivedMessage);
   }
