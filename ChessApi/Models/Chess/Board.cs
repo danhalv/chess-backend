@@ -182,26 +182,12 @@ public class Board
     }).ToList();
   }
 
-  public bool IsCastlingMove(Move move)
-  {
-    var king = GetTile(move.Src).Piece as King;
-    var rook = GetTile(move.Dst).Piece as Rook;
-
-    if (king == null || rook == null)
-      return false;
-
-    bool hasMoved = king.HasMoved || rook.HasMoved;
-    bool isSameColor = king.Color == rook.Color;
-
-    return !hasMoved && isSameColor;
-  }
-
   public void MakeMove(Move move)
   {
     // save new move data
     MoveData = new Dictionary<int, IPiece?>();
 
-    if (IsCastlingMove(move))
+    if (move is CastlingMove)
     {
       var king = Tiles[move.Src].Piece;
       var rook = Tiles[move.Dst].Piece;

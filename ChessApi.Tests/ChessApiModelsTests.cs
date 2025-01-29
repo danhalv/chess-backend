@@ -470,16 +470,16 @@ public class ChessApiModelsTests
     .Replace("\n", String.Empty);
 
     // white kingside castling
-    yield return new object[] { boardString, Color.White, "e1", new Move("e1", "h1") };
+    yield return new object[] { boardString, Color.White, "e1", new CastlingMove("e1", "h1") };
 
     // white queenside castling
-    yield return new object[] { boardString, Color.White, "e1", new Move("e1", "a1") };
+    yield return new object[] { boardString, Color.White, "e1", new CastlingMove("e1", "a1") };
 
     // black kingside castling
-    yield return new object[] { boardString, Color.Black, "e8", new Move("e8", "h8") };
+    yield return new object[] { boardString, Color.Black, "e8", new CastlingMove("e8", "h8") };
 
     // black queenside castling
-    yield return new object[] { boardString, Color.Black, "e8", new Move("e8", "a8") };
+    yield return new object[] { boardString, Color.Black, "e8", new CastlingMove("e8", "a8") };
   }
 
   [Theory, MemberData(nameof(TestCastlingMovesData))]
@@ -518,16 +518,16 @@ public class ChessApiModelsTests
     .Replace("\n", String.Empty);
 
     // white kingside castling
-    yield return new object[] { boardString, "e1", "g1", "h1", "f1", new Move("e1", "h1") };
+    yield return new object[] { boardString, "e1", "g1", "h1", "f1", new CastlingMove("e1", "h1") };
 
     // white queenside castling
-    yield return new object[] { boardString, "e1", "c1", "a1", "d1", new Move("e1", "a1") };
+    yield return new object[] { boardString, "e1", "c1", "a1", "d1", new CastlingMove("e1", "a1") };
 
     // black kingside castling
-    yield return new object[] { boardString, "e8", "g8", "h8", "f8", new Move("e8", "h8") };
+    yield return new object[] { boardString, "e8", "g8", "h8", "f8", new CastlingMove("e8", "h8") };
 
     // black queenside castling
-    yield return new object[] { boardString, "e8", "c8", "a8", "d8", new Move("e8", "a8") };
+    yield return new object[] { boardString, "e8", "c8", "a8", "d8", new CastlingMove("e8", "a8") };
   }
 
   [Theory, MemberData(nameof(TestChecksData))]

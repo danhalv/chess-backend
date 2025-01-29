@@ -64,16 +64,16 @@ public class King : IPiece
           if (this.Color == Color.White)
           {
             if (tile == Tile.StringToIndex("a1"))
-              moves.Add(new Move(pieceTilePos, Tile.StringToIndex("a1")));
+              moves.Add(new CastlingMove(pieceTilePos, Tile.StringToIndex("a1")));
             else if (tile == Tile.StringToIndex("h1"))
-              moves.Add(new Move(pieceTilePos, Tile.StringToIndex("h1")));
+              moves.Add(new CastlingMove(pieceTilePos, Tile.StringToIndex("h1")));
           }
           else
           {
             if (tile == Tile.StringToIndex("a8"))
-              moves.Add(new Move(pieceTilePos, Tile.StringToIndex("a8")));
+              moves.Add(new CastlingMove(pieceTilePos, Tile.StringToIndex("a8")));
             else if (tile == Tile.StringToIndex("h8"))
-              moves.Add(new Move(pieceTilePos, Tile.StringToIndex("h8")));
+              moves.Add(new CastlingMove(pieceTilePos, Tile.StringToIndex("h8")));
           }
         }
       }
