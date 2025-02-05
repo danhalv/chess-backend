@@ -225,11 +225,10 @@ public class Board
     }
     else if (move is PromotionMove)
     {
-      var piecePromotion = new Queen(Turn);
-      piecePromotion.HasMoved = true;
-
       addMoveData(move.Src);
       addMoveData(move.Dst);
+      var piecePromotion = new Queen(Turn);
+      piecePromotion.HasMoved = true;
       Tiles[move.Dst].Piece = piecePromotion;
       Tiles[move.Src].Piece = null;
     }

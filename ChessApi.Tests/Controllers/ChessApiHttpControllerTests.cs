@@ -47,7 +47,7 @@ public class ChessApiHttpControllerTests : ChessApiControllerTests
       await getResponse.Content.ReadAsStringAsync();
     Assert.Contains("id", getResponseContentString);
     Assert.Contains("turn", getResponseContentString);
-    Assert.Contains("chessMoves", getResponseContentString);
+    Assert.Contains("moves", getResponseContentString);
     var retrievedGameId = ExtractGameId(getResponseContentString);
     Assert.Equal(retrievedGameId, gameId);
   }

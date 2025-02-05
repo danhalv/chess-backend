@@ -63,7 +63,7 @@ public class ChessApiWebSocketController : ControllerBase
         continue;
 
       var chessgame = await Db!.ChessGames
-                               .Include("ChessMoves")
+                               .Include("Moves")
                                .FirstOrDefaultAsync(c => c.Id == gameId);
 
       if (chessgame is null)
@@ -76,9 +76,20 @@ public class ChessApiWebSocketController : ControllerBase
 
       var board = new Board();
 
-      foreach (var m in chessgame!.ChessMoves)
+      foreach (var move in chessgame!.Moves)
       {
-        board.MakeMove(m);
+        switch (move)
+        {
+          case CastlingMove castlingMove:
+            board.MakeMove((CastlingMove)castlingMove);
+            break;
+          case PromotionMove promotionMove:
+            board.MakeMove((PromotionMove)promotionMove);
+            break;
+          default:
+            board.MakeMove((Move)move);
+            break;
+        }
       }
 
       switch (WsRequest.RequestType)
@@ -96,8 +107,36 @@ public class ChessApiWebSocketController : ControllerBase
             }
 
             var sentMove = ((MakeMoveRequest)WsRequest).Move;
-            board.MakeMove(sentMove);
-            chessgame!.ChessMoves.Add(new ChessMove(sentMove.Src, sentMove.Dst));
+
+            var makeMove = () =>
+            {
+              var move = board.LegalMoves().FirstOrDefault(move =>
+              {
+                if (move.Src == sentMove.Src && move.Dst == sentMove.Dst)
+                  return true;
+                return false;
+              });
+
+              if (move is null)
+                return;
+
+              switch (move)
+              {
+                case CastlingMove castlingMove:
+                  board.MakeMove((CastlingMove)castlingMove);
+                  break;
+                case PromotionMove promotionMove:
+                  board.MakeMove((PromotionMove)promotionMove);
+                  break;
+                default:
+                  board.MakeMove((Move)move);
+                  break;
+              }
+
+              chessgame!.Moves.Add(move);
+            };
+
+            makeMove();
             chessgame!.Turn = board.Turn;
             await Db!.SaveChangesAsync();
 
@@ -211,7 +250,7 @@ public class ChessApiWebSocketController : ControllerBase
   private async Task<ChessGame?> RetrieveChessGameAsync(long gameId)
   {
     var chessgame = await Db!.ChessGames
-                             .Include("ChessMoves")
+                             .Include("Moves")
                              .FirstOrDefaultAsync(c => c.Id == gameId);
 
     if (chessgame is null)

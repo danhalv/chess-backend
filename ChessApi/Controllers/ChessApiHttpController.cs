@@ -20,7 +20,7 @@ public class ChessApiHttpController : ControllerBase
   public async Task<ActionResult<IEnumerable<ChessGame>>> GetChessGames()
   {
     return await _db.ChessGames
-                    .Include("ChessMoves")
+                    .Include("Moves")
                     .ToListAsync();
   }
 
@@ -28,7 +28,7 @@ public class ChessApiHttpController : ControllerBase
   public async Task<ActionResult<ChessGame>> GetChessGame(long id)
   {
     var chessgame = await _db.ChessGames
-                             .Include("ChessMoves")
+                             .Include("Moves")
                              .FirstOrDefaultAsync(c => c.Id == id);
 
     if (chessgame is null)
@@ -44,7 +44,7 @@ public class ChessApiHttpController : ControllerBase
     {
       Id = 0,
       Turn = Color.White,
-      ChessMoves = new List<ChessMove>()
+      Moves = new List<Move>()
     };
 
     _db.ChessGames.Add(chessgame);
