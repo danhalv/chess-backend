@@ -11,9 +11,7 @@ COPY . .
 RUN dotnet build "ChessApi/ChessApi.csproj" -c Release -o /app/build
 
 FROM build AS test
-COPY ["ChessApi.Tests/ChessApi.Tests.csproj", "ChessApi.Tests/"]
 RUN dotnet restore "ChessApi.Tests/ChessApi.Tests.csproj"
-COPY ["ChessApi.Tests/*", "ChessApi.Tests/"]
 RUN dotnet test "ChessApi.Tests/ChessApi.Tests.csproj"
 
 FROM build AS migrations
