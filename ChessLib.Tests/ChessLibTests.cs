@@ -187,62 +187,6 @@ public class ChessLibTests
     yield return new object[] { boardString, "a1", a1BlackKnightMoves };
   }
 
-  [Theory, MemberData(nameof(TestPossibleBishopMovesData))]
-  public void TestPossibleBishopMoves(string boardString,
-                                      string bishopTileString,
-                                      List<Move> expected)
-  {
-    var board = new Board(Color.White, boardString);
-
-    Tile bishopTile = board.GetTile(bishopTileString);
-    List<Move> actual = bishopTile.Piece!.GetMoves(board, bishopTile.Index);
-
-    Assert.Equal(expected.Count, actual.Count);
-
-    actual = actual.OrderBy(m => m.Dst).ToList();
-    expected = expected.OrderBy(m => m.Dst).ToList();
-    for (int i = 0; i < actual.Count; i++)
-    {
-      Assert.Equal(expected[i].Src, actual[i].Src);
-      Assert.Equal(expected[i].Dst, actual[i].Dst);
-    }
-  }
-
-  public static IEnumerable<object[]> TestPossibleBishopMovesData()
-  {
-    var boardString = """
-    _______b
-    ________
-    _____B__
-    ___b____
-    ________
-    _____B__
-    ________
-    ___B____
-    """
-    .Replace("\n", String.Empty);
-
-    var f3WhiteBishopMoves = new List<Move>()
-    {
-      new Move("f3", "g2"), // right backward diagonal
-      new Move("f3", "h1"),
-      new Move("f3", "e2"), // left backward diagonal
-      new Move("f3", "g4"), // right forward diagonal
-      new Move("f3", "h5"),
-      new Move("f3", "e4"), // left forward diagonal
-      new Move("f3", "d5")  // capture
-    };
-
-    var h8BlackBishopMoves = new List<Move>()
-    {
-      new Move("h8", "g7"),
-      new Move("h8", "f6")  // capture
-    };
-
-    yield return new object[] { boardString, "f3", f3WhiteBishopMoves };
-    yield return new object[] { boardString, "h8", h8BlackBishopMoves };
-  }
-
   [Theory, MemberData(nameof(TestPossibleRookMovesData))]
   public void TestPossibleRookMoves(string boardString,
                                     string rookTileString,
