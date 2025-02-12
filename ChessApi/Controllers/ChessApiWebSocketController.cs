@@ -2,8 +2,8 @@ using System.Collections.Concurrent;
 using System.Net.WebSockets;
 using System.Text.Json;
 using ChessApi.Models;
-using ChessApi.Models.Chess;
 using ChessApi.Models.WebSocketMessages;
+using ChessLib;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 

@@ -1,4 +1,4 @@
-using ChessApi.Models.Chess;
+using ChessLib;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

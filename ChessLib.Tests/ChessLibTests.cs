@@ -1,8 +1,8 @@
-using ChessApi.Models.Chess;
+using ChessLib;
 
-namespace ChessApi.Tests;
+namespace ChessLib.Tests;
 
-public class ChessApiModelsTests
+public class ChessLibTests
 {
   [Theory]
   [InlineData(0, Color.Black)]

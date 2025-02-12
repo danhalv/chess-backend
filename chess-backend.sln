@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChessApi", "ChessApi\ChessA
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChessApi.Tests", "ChessApi.Tests\ChessApi.Tests.csproj", "{E78C6E7D-0581-44C5-BFD1-CCE13A7A36DF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChessLib", "ChessLib\ChessLib.csproj", "{5F5C2482-1254-4FC6-A6FA-4B31D07B0411}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChessLib.Tests", "ChessLib.Tests\ChessLib.Tests.csproj", "{0D49CAEF-EF43-4A33-8F16-1B7348ED5D84}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +28,13 @@ Global
 		{E78C6E7D-0581-44C5-BFD1-CCE13A7A36DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E78C6E7D-0581-44C5-BFD1-CCE13A7A36DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E78C6E7D-0581-44C5-BFD1-CCE13A7A36DF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F5C2482-1254-4FC6-A6FA-4B31D07B0411}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F5C2482-1254-4FC6-A6FA-4B31D07B0411}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F5C2482-1254-4FC6-A6FA-4B31D07B0411}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F5C2482-1254-4FC6-A6FA-4B31D07B0411}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D49CAEF-EF43-4A33-8F16-1B7348ED5D84}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D49CAEF-EF43-4A33-8F16-1B7348ED5D84}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D49CAEF-EF43-4A33-8F16-1B7348ED5D84}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D49CAEF-EF43-4A33-8F16-1B7348ED5D84}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

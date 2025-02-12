@@ -1,5 +1,5 @@
 using ChessApi.Models;
-using ChessApi.Models.Chess;
+using ChessLib;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 

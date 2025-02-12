@@ -3,7 +3,7 @@ using System.Net;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using ChessApi.Models;
-using ChessApi.Models.Chess;
+using ChessLib;
 using Xunit;
 
 namespace ChessApi.Tests.Controllers;

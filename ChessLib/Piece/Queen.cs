@@ -1,16 +1,16 @@
-namespace ChessApi.Models.Chess;
+namespace ChessLib;
 
-public class Rook : IPiece
+public class Queen : IPiece
 {
   public Color Color { get; }
   public bool HasMoved { get; set; }
   public char CharRepresentation { get; }
 
-  public Rook(Color color)
+  public Queen(Color color)
   {
     Color = color;
     HasMoved = false;
-    CharRepresentation = (color == Color.White) ? 'R' : 'r';
+    CharRepresentation = (color == Color.White) ? 'Q' : 'q';
   }
 
   List<Move> IPiece.GetMoves(Board board, int pieceTilePos)
@@ -45,6 +45,26 @@ public class Rook : IPiece
         Tile.HorizontalTiles(Direction.Left, pieceTilePos, this.Color));
     addTilesUntilOpponentOccupied(
         Tile.HorizontalTiles(Direction.Right, pieceTilePos, this.Color));
+    addTilesUntilOpponentOccupied(
+        Tile.DiagonalTiles(Direction.DiagonalRight,
+                           Direction.Forward,
+                           pieceTilePos,
+                           this.Color));
+    addTilesUntilOpponentOccupied(
+        Tile.DiagonalTiles(Direction.DiagonalLeft,
+                           Direction.Forward,
+                           pieceTilePos,
+                           this.Color));
+    addTilesUntilOpponentOccupied(
+        Tile.DiagonalTiles(Direction.DiagonalRight,
+                           Direction.Backward,
+                           pieceTilePos,
+                           this.Color));
+    addTilesUntilOpponentOccupied(
+        Tile.DiagonalTiles(Direction.DiagonalLeft,
+                           Direction.Backward,
+                           pieceTilePos,
+                           this.Color));
 
     return moves;
   }

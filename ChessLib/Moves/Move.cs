@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace ChessApi.Models.Chess;
+namespace ChessLib;
 
 public class Move
 {

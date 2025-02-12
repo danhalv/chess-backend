@@ -3,7 +3,7 @@ services:
   backend:
     build:
       target: backend
-    container_name: ChessApi_backend
+    container_name: backend
     depends_on:
       - migrations
       - chess-db
@@ -13,11 +13,11 @@ services:
   build:
     build:
       target: build
-    container_name: ChessApi_build
+    container_name: build
 
   chess-db:
     image: postgres:latest
-    container_name: ChessApi_db
+    container_name: chess-db
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
@@ -29,11 +29,11 @@ services:
   format-check:
     build:
       target: format-check
-    container_name: ChessApi_format-check
+    container_name: format-check
 
   frontend:
     image: httpd:2.4
-    container_name: ChessApi_frontend
+    container_name: frontend
     depends_on:
       - backend
     ports:
@@ -44,11 +44,11 @@ services:
   migrations:
     build:
       target: migrations
-    container_name: ChessApi_migrations
+    container_name: migrations
     depends_on:
       - chess-db
 
   test:
     build:
       target: test
-    container_name: ChessApi_test
+    container_name: test

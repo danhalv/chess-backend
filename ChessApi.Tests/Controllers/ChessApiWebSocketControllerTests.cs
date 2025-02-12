@@ -2,8 +2,8 @@ using System.Net;
 using System.Net.WebSockets;
 using System.Text.Json;
 using ChessApi.Models;
-using ChessApi.Models.Chess;
 using ChessApi.Models.WebSocketMessages;
+using ChessLib;
 using Microsoft.AspNetCore.TestHost;
 using Xunit;
 

@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-using ChessApi.Models.Chess;
+using ChessLib;
 
 namespace ChessApi.Models.WebSocketMessages;
 

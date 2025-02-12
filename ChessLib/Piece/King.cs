@@ -1,4 +1,4 @@
-namespace ChessApi.Models.Chess;
+namespace ChessLib;
 
 public class King : IPiece
 {
