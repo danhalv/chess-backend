@@ -23,4 +23,5 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS backend
 WORKDIR /app
 COPY --from=build /app/build .
 EXPOSE 8080
+ENV ASPNETCORE_ENVIRONMENT=Staging
 ENTRYPOINT ["dotnet", "ChessApi.dll"]
