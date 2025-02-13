@@ -77,6 +77,9 @@ public class King : IPiece
       {
         Rook rook = board.GetTile(tileIndex).Piece as Rook;
 
+        if (rook == null && board.IsTileOccupied(tileIndex))
+          break;
+
         if (rook != null && !rook.HasMoved && rook.Color == this.Color)
         {
           if (tileIndex == Tile.StringToIndex("a1"))
