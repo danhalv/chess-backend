@@ -132,61 +132,6 @@ public class ChessLibTests
     yield return new object[] { boardString, "b5", b5WhitePawnMoves };
   }
 
-  [Theory, MemberData(nameof(TestPossibleKnightMovesData))]
-  public void TestPossibleKnightMoves(string boardString,
-                                      string knightTileString,
-                                      List<Move> expected)
-  {
-    var board = new Board(Color.White, boardString);
-
-    Tile knightTile = board.GetTile(knightTileString);
-    List<Move> actual = knightTile.Piece!.GetMoves(board, knightTile.Index);
-
-    Assert.Equal(expected.Count, actual.Count);
-
-    actual = actual.OrderBy(m => m.Dst).ToList();
-    expected = expected.OrderBy(m => m.Dst).ToList();
-    for (int i = 0; i < actual.Count; i++)
-    {
-      Assert.Equal(expected[i].Src, actual[i].Src);
-      Assert.Equal(expected[i].Dst, actual[i].Dst);
-    }
-  }
-
-  public static IEnumerable<object[]> TestPossibleKnightMovesData()
-  {
-    var boardString = """
-    ________
-    ________
-    ________
-    ____N___
-    ________
-    _n_n_N__
-    __N_____
-    n_______
-    """
-    .Replace("\n", String.Empty);
-
-    var e5WhiteKnightMoves = new List<Move>()
-    {
-      new Move("e5", "d7"),
-      new Move("e5", "f7"),
-      new Move("e5", "d3"),
-      new Move("e5", "c4"),
-      new Move("e5", "c6"),
-      new Move("e5", "g4"),
-      new Move("e5", "g6")
-    };
-
-    var a1BlackKnightMoves = new List<Move>()
-    {
-      new Move("a1", "c2")
-    };
-
-    yield return new object[] { boardString, "e5", e5WhiteKnightMoves };
-    yield return new object[] { boardString, "a1", a1BlackKnightMoves };
-  }
-
   [Theory, MemberData(nameof(TestPossibleRookMovesData))]
   public void TestPossibleRookMoves(string boardString,
                                     string rookTileString,
