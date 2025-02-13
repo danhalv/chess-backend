@@ -15,99 +15,89 @@ public class King : IPiece
 
   List<Move> IPiece.GetMoves(Board board, int pieceTilePos)
   {
-    var moves = new List<Move>();
+    return RegularMoves(board, pieceTilePos)
+           .Concat(CastlingMoves(board, pieceTilePos)).ToList();
+  }
 
-    void addTilesUntilOpponentOccupied(List<int> tiles)
+  private List<Move> RegularMoves(Board board, int pieceTilePos)
+  {
+    var surroundingTiles = new List<List<int>>
     {
-      bool isKingDefaultPosition = (this.Color == Color.White)
-                                   ? (pieceTilePos == Tile.StringToIndex("e1"))
-                                   : (pieceTilePos == Tile.StringToIndex("e8"));
-      bool hasKingMoved = board.GetTile(pieceTilePos).Piece!.HasMoved;
+      Tile.HorizontalTiles(Direction.Left, pieceTilePos, this.Color),
+      Tile.HorizontalTiles(Direction.Right, pieceTilePos, this.Color),
+      Tile.VerticalTiles(Direction.Forward, pieceTilePos, this.Color),
+      Tile.VerticalTiles(Direction.Backward, pieceTilePos, this.Color),
+      Tile.DiagonalTiles(Direction.DiagonalRight, Direction.Forward, pieceTilePos, this.Color),
+      Tile.DiagonalTiles(Direction.DiagonalLeft, Direction.Forward, pieceTilePos, this.Color),
+      Tile.DiagonalTiles(Direction.DiagonalRight, Direction.Backward, pieceTilePos, this.Color),
+      Tile.DiagonalTiles(Direction.DiagonalLeft, Direction.Backward, pieceTilePos, this.Color)
+    }.Aggregate(new List<int>(),
+                (current, next) =>
+    {
+      if (next.Any())
+        current.Add(next.First());
 
-      if (tiles.Count > 0)
+      return current;
+    });
+
+    List<Move> legalMoves(List<int> surroundingTileIndices)
+    {
+      var moves = new List<Move>();
+
+      foreach (int tileIndex in surroundingTileIndices)
       {
-        if (!board.IsTileOccupied(tiles[0]))
-        {
-          moves.Add(new Move(pieceTilePos, tiles[0]));
-        }
-        else
-        {
-          IPiece tilePiece = board.GetTile(tiles[0]).Piece!;
+        IPiece piece = board.GetTile(tileIndex).Piece as IPiece;
 
-          if (tilePiece.Color != this.Color)
-          {
-            moves.Add(new Move(pieceTilePos, tiles[0]));
-          }
-        }
+        if (piece == null || piece.Color != this.Color)
+          moves.Add(new Move(pieceTilePos, tileIndex));
       }
 
-      var rookDefaultTiles = new List<int>
-      {
-        Tile.StringToIndex("a1"),
-        Tile.StringToIndex("h1"),
-        Tile.StringToIndex("a8"),
-        Tile.StringToIndex("h8")
-      };
-
-      foreach (var tile in tiles.Where(i => rookDefaultTiles.Contains(i)))
-      {
-        var tilePiece = board.GetTile(tile).Piece;
-
-        // Castling moves
-        if (tilePiece != null
-            && tilePiece.GetType() == typeof(Rook)
-            && tilePiece.Color == this.Color
-            && !tilePiece.HasMoved
-            && isKingDefaultPosition
-            && !hasKingMoved)
-        {
-          if (this.Color == Color.White)
-          {
-            if (tile == Tile.StringToIndex("a1"))
-              moves.Add(new CastlingMove(pieceTilePos, Tile.StringToIndex("a1")));
-            else if (tile == Tile.StringToIndex("h1"))
-              moves.Add(new CastlingMove(pieceTilePos, Tile.StringToIndex("h1")));
-          }
-          else
-          {
-            if (tile == Tile.StringToIndex("a8"))
-              moves.Add(new CastlingMove(pieceTilePos, Tile.StringToIndex("a8")));
-            else if (tile == Tile.StringToIndex("h8"))
-              moves.Add(new CastlingMove(pieceTilePos, Tile.StringToIndex("h8")));
-          }
-        }
-      }
+      return moves;
     }
 
-    addTilesUntilOpponentOccupied(
-        Tile.VerticalTiles(Direction.Forward, pieceTilePos, this.Color));
-    addTilesUntilOpponentOccupied(
-        Tile.VerticalTiles(Direction.Backward, pieceTilePos, this.Color));
-    addTilesUntilOpponentOccupied(
-        Tile.HorizontalTiles(Direction.Left, pieceTilePos, this.Color));
-    addTilesUntilOpponentOccupied(
-        Tile.HorizontalTiles(Direction.Right, pieceTilePos, this.Color));
-    addTilesUntilOpponentOccupied(
-        Tile.DiagonalTiles(Direction.DiagonalRight,
-                           Direction.Forward,
-                           pieceTilePos,
-                           this.Color));
-    addTilesUntilOpponentOccupied(
-        Tile.DiagonalTiles(Direction.DiagonalLeft,
-                           Direction.Forward,
-                           pieceTilePos,
-                           this.Color));
-    addTilesUntilOpponentOccupied(
-        Tile.DiagonalTiles(Direction.DiagonalRight,
-                           Direction.Backward,
-                           pieceTilePos,
-                           this.Color));
-    addTilesUntilOpponentOccupied(
-        Tile.DiagonalTiles(Direction.DiagonalLeft,
-                           Direction.Backward,
-                           pieceTilePos,
-                           this.Color));
+    return legalMoves(surroundingTiles);
+  }
 
-    return moves;
+  private List<Move> CastlingMoves(Board board, int pieceTilePos)
+  {
+    if (this.HasMoved)
+      return new List<Move>();
+
+    var horizontalTiles = new List<List<int>>
+    {
+      Tile.HorizontalTiles(Direction.Left, pieceTilePos, this.Color),
+      Tile.HorizontalTiles(Direction.Right, pieceTilePos, this.Color)
+    };
+
+    List<Move> legalCastlingMoves(List<int> horizontalTileIndices)
+    {
+      var moves = new List<Move>();
+
+      foreach (int tileIndex in horizontalTileIndices)
+      {
+        Rook rook = board.GetTile(tileIndex).Piece as Rook;
+
+        if (rook != null && !rook.HasMoved && rook.Color == this.Color)
+        {
+          if (tileIndex == Tile.StringToIndex("a1"))
+            moves.Add(new CastlingMove(pieceTilePos, Tile.StringToIndex("a1")));
+          else if (tileIndex == Tile.StringToIndex("h1"))
+            moves.Add(new CastlingMove(pieceTilePos, Tile.StringToIndex("h1")));
+          else if (tileIndex == Tile.StringToIndex("a8"))
+            moves.Add(new CastlingMove(pieceTilePos, Tile.StringToIndex("a8")));
+          else if (tileIndex == Tile.StringToIndex("h8"))
+            moves.Add(new CastlingMove(pieceTilePos, Tile.StringToIndex("h8")));
+        }
+      }
+
+      return moves;
+    }
+
+    return horizontalTiles.Aggregate(new List<Move>(),
+                                     (current, next) =>
+    {
+      current.AddRange(legalCastlingMoves(next));
+      return current;
+    });
   }
 }
