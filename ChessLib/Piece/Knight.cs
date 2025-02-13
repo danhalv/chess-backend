@@ -27,22 +27,18 @@ public class Knight : IPiece
       Tile.CalcIndex(pieceTilePos, -2, -1)
     };
 
-    var moves = new List<Move>();
-
-    foreach (int tileIndex in possibleTiles)
+    return possibleTiles.Aggregate(new List<Move>(),
+                                   (current, next) =>
     {
-      if (!Tile.IsInRange(tileIndex))
-        continue;
-
-      IPiece? tilePiece = board.GetTile(tileIndex).Piece;
-
-      if (tilePiece == null
-          || this.Color != tilePiece.Color)
+      if (Tile.IsInRange(next))
       {
-        moves.Add(new Move(pieceTilePos, tileIndex));
-      }
-    }
+        var piece = board.GetTile(next).Piece;
 
-    return moves;
+        if (piece == null || piece.Color != this.Color)
+          current.Add(new Move(pieceTilePos, next));
+      }
+
+      return current;
+    });
   }
 }
