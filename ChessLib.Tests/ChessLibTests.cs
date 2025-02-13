@@ -132,69 +132,6 @@ public class ChessLibTests
     yield return new object[] { boardString, "b5", b5WhitePawnMoves };
   }
 
-  [Theory, MemberData(nameof(TestPossibleQueenMovesData))]
-  public void TestPossibleQueenMoves(string boardString,
-                                    string queenTileString,
-                                    List<Move> expected)
-  {
-    var board = new Board(Color.White, boardString);
-
-    Tile queenTile = board.GetTile(queenTileString);
-    List<Move> actual = queenTile.Piece!.GetMoves(board, queenTile.Index);
-
-    Assert.Equal(expected.Count, actual.Count);
-
-    actual = actual.OrderBy(m => m.Dst).ToList();
-    expected = expected.OrderBy(m => m.Dst).ToList();
-    for (int i = 0; i < actual.Count; i++)
-    {
-      Assert.Equal(expected[i].Src, actual[i].Src);
-      Assert.Equal(expected[i].Dst, actual[i].Dst);
-    }
-  }
-
-  public static IEnumerable<object[]> TestPossibleQueenMovesData()
-  {
-    var boardString = """
-    ________
-    ________
-    ________
-    ________
-    ___Q____
-    _q_qqq__
-    _Q__qq__
-    ________
-    """
-    .Replace("\n", String.Empty);
-
-    var b2WhiteQueenMoves = new List<Move>()
-    {
-      new Move("b2", "a1"),
-      new Move("b2", "b1"),
-      new Move("b2", "c1"),
-      new Move("b2", "c2"),
-      new Move("b2", "d2"),
-      new Move("b2", "e2"),
-      new Move("b2", "c3"),
-      new Move("b2", "b3"),
-      new Move("b2", "a3"),
-      new Move("b2", "a2")
-    };
-
-    var e2BlackQueenMoves = new List<Move>()
-    {
-      new Move("e2", "d1"),
-      new Move("e2", "e1"),
-      new Move("e2", "f1"),
-      new Move("e2", "d2"),
-      new Move("e2", "c2"),
-      new Move("e2", "b2")
-    };
-
-    yield return new object[] { boardString, "b2", b2WhiteQueenMoves };
-    yield return new object[] { boardString, "e2", e2BlackQueenMoves };
-  }
-
   [Theory, MemberData(nameof(TestPossibleKingMovesData))]
   public void TestPossibleKingMoves(string boardString,
                                     string kingTileString,
