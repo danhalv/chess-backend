@@ -17,115 +17,124 @@ public class Pawn : IPiece
 
   List<Move> IPiece.GetMoves(Board board, int pieceTilePos)
   {
-    List<Move> diagonalPawnMoves(List<int> diagonalTiles)
-    {
-      var diagonalMoves = new List<Move>();
+    return ForwardMoves(board, pieceTilePos)
+           .Concat(RegularCaptureMoves(board, pieceTilePos))
+           .Concat(EnPassantCaptureMoves(board, pieceTilePos))
+           .ToList();
+  }
 
-      if (diagonalTiles.Any())
-      {
-        if (board.IsTileOccupied(diagonalTiles[0]))
-        {
-          bool isEnemy = (this.Color !=
-                          board.GetTile(diagonalTiles[0]).Piece!.Color);
-          if (isEnemy)
-            diagonalMoves.Add(new Move(pieceTilePos, diagonalTiles[0]));
-        }
-      }
-
-      return diagonalMoves;
-    }
-
+  private List<Move> ForwardMoves(Board board, int pieceTilePos)
+  {
     var moves = new List<Move>();
 
-    // diagonal captures
-    moves.AddRange(diagonalPawnMoves(Tile.DiagonalTiles(Direction.DiagonalRight,
-                                                        Direction.Forward,
-                                                        pieceTilePos,
-                                                        this.Color)));
-    moves.AddRange(diagonalPawnMoves(Tile.DiagonalTiles(Direction.DiagonalLeft,
-                                                        Direction.Forward,
-                                                        pieceTilePos,
-                                                        this.Color)));
+    var forwardTiles = Tile.VerticalTiles(Direction.Forward, pieceTilePos, this.Color);
 
-    var forwardTiles = Tile.VerticalTiles(Direction.Forward,
-                                          pieceTilePos,
-                                          this.Color);
-
-    // forward moves
-    for (int i = 0; i < 2; i++)
+    // one step forward
+    if (forwardTiles.Count >= 1)
     {
-      if (forwardTiles.Count <= i || board.IsTileOccupied(forwardTiles[i]))
-        break;
+      var oneTileForward = forwardTiles[0];
 
-      if (i < 1 || !HasMoved)
+      if (board.IsTileOccupied(oneTileForward))
+        return moves;
+
+      // possible promotion on last row
+      if ((this.Color == Color.White && Tile.Row(oneTileForward) == 7)
+          || (this.Color == Color.Black && Tile.Row(oneTileForward) == 0))
       {
-        if ((this.Color == Color.White && Tile.Row(forwardTiles[i]) == 7)
-          || (this.Color == Color.Black && Tile.Row(forwardTiles[i]) == 0))
-        {
-          moves.Add(new PromotionMove(pieceTilePos, forwardTiles[i]));
-        }
-        else
-        {
-          moves.Add(new Move(pieceTilePos, forwardTiles[i]));
-        }
+        moves.Add(new PromotionMove(pieceTilePos, oneTileForward));
+        return moves;
       }
-    }
-
-    // en passant capture moves
-    var rightTiles = Tile.HorizontalTiles(Direction.Right,
-                                          pieceTilePos,
-                                          this.Color);
-
-    if (rightTiles.Any())
-    {
-      var piece = board.GetTile(rightTiles[0]).Piece;
-
-      if (piece != null
-          && piece.GetType() == typeof(Pawn)
-          && ((Pawn)piece).IsEnpassantable)
+      else
       {
-        if (this.Color == Color.White)
-        {
-          var dstTile = Tile.CalcIndex(pieceTilePos, 1, 1);
-          if (Tile.IsInRange(dstTile))
-            moves.Add(new Move(pieceTilePos, dstTile));
-        }
-        else
-        {
-          var dstTile = Tile.CalcIndex(pieceTilePos, -1, -1);
-          if (Tile.IsInRange(dstTile))
-            moves.Add(new Move(pieceTilePos, dstTile));
-        }
+        moves.Add(new Move(pieceTilePos, oneTileForward));
       }
-    }
 
-    var leftTiles = Tile.HorizontalTiles(Direction.Left,
-                                         pieceTilePos,
-                                         this.Color);
-
-    if (leftTiles.Any())
-    {
-      var piece = board.GetTile(leftTiles[0]).Piece;
-
-      if (piece != null
-          && piece.GetType() == typeof(Pawn)
-          && ((Pawn)piece).IsEnpassantable)
+      // two steps forward
+      if (forwardTiles.Count >= 2)
       {
-        if (this.Color == Color.White)
-        {
-          var dstTile = Tile.CalcIndex(pieceTilePos, 1, -1);
-          if (Tile.IsInRange(dstTile))
-            moves.Add(new Move(pieceTilePos, dstTile));
-        }
-        else
-        {
-          var dstTile = Tile.CalcIndex(pieceTilePos, -1, 1);
-          if (Tile.IsInRange(dstTile))
-            moves.Add(new Move(pieceTilePos, dstTile));
-        }
+        var twoTilesForward = forwardTiles[1];
+
+        if (!board.IsTileOccupied(twoTilesForward) && !this.HasMoved)
+          moves.Add(new Move(pieceTilePos, twoTilesForward));
       }
     }
 
     return moves;
+  }
+
+  private List<Move> RegularCaptureMoves(Board board, int pieceTilePos)
+  {
+    var forwardDiagonals = new List<List<int>>
+    {
+      Tile.DiagonalTiles(Direction.DiagonalRight,
+                         Direction.Forward,
+                         pieceTilePos,
+                         this.Color),
+      Tile.DiagonalTiles(Direction.DiagonalLeft,
+                         Direction.Forward,
+                         pieceTilePos,
+                         this.Color)
+    }.Aggregate(new List<int>(),
+                (current, next) =>
+    {
+      if (next.Any())
+        current.Add(next.First());
+
+      return current;
+    });
+
+    return forwardDiagonals.Aggregate(new List<Move>(),
+                                      (current, next) =>
+    {
+      IPiece piece = board.GetTile(next).Piece as IPiece;
+
+      if (piece != null && piece.Color != this.Color)
+      {
+        // possible promotion on last row
+        if ((this.Color == Color.White && Tile.Row(next) == 7)
+            || (this.Color == Color.Black && Tile.Row(next) == 0))
+        {
+          current.Add(new PromotionMove(pieceTilePos, next));
+        }
+        else
+        {
+          current.Add(new Move(pieceTilePos, next));
+        }
+      }
+
+      return current;
+    });
+  }
+
+  private List<Move> EnPassantCaptureMoves(Board board, int pieceTilePos)
+  {
+    var horizontalTiles = new List<List<int>>
+    {
+      Tile.HorizontalTiles(Direction.Left, pieceTilePos, this.Color),
+      Tile.HorizontalTiles(Direction.Right, pieceTilePos, this.Color)
+    }.Aggregate(new List<int>(),
+                (current, next) =>
+    {
+      if (next.Any())
+        current.Add(next.First());
+
+      return current;
+    });
+
+    return horizontalTiles.Aggregate(new List<Move>(),
+                                     (current, next) =>
+    {
+      Pawn pawn = board.GetTile(next).Piece as Pawn;
+
+      if (pawn != null && pawn.IsEnpassantable)
+      {
+        if (Color.White == this.Color)
+          current.Add(new Move(pieceTilePos, next + 8));
+        else
+          current.Add(new Move(pieceTilePos, next - 8));
+      }
+
+      return current;
+    });
   }
 }
