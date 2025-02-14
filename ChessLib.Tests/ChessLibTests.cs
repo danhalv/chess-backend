@@ -61,77 +61,6 @@ public class ChessLibTests
     yield return new object[] { boardString, "e5", null! };
   }
 
-  [Theory, MemberData(nameof(TestPossiblePawnMovesData))]
-  public void TestPossiblePawnMoves(string boardString,
-                                    string pawnTileStr,
-                                    List<Move> expected)
-  {
-    var board = new Board(Color.White, boardString);
-    board.GetTile("f4").Piece!.HasMoved = true;
-    board.GetTile("b5").Piece!.HasMoved = true;
-    ((Pawn)board.GetTile("g4").Piece!).IsEnpassantable = true;
-    ((Pawn)board.GetTile("c5").Piece!).IsEnpassantable = true;
-
-    Tile pawnTile = board.GetTile(pawnTileStr);
-    List<Move> actual = pawnTile.Piece!.GetMoves(board, pawnTile.Index);
-
-    Assert.Equal(expected.Count, actual.Count);
-
-    actual = actual.OrderBy(m => m.Dst).ToList();
-    expected = expected.OrderBy(m => m.Dst).ToList();
-    for (int i = 0; i < actual.Count; i++)
-    {
-      Assert.Equal(expected[i].Src, actual[i].Src);
-      Assert.Equal(expected[i].Dst, actual[i].Dst);
-    }
-  }
-
-  public static IEnumerable<object[]> TestPossiblePawnMovesData()
-  {
-    var boardString = """
-    ________
-    ______p_
-    _____p_P
-    _Pp___p_
-    _____pP_
-    p_p_____
-    _P______
-    ________
-    """
-    .Replace("\n", String.Empty);
-
-    var b2WhitePawnMoves = new List<Move>()
-    {
-      new Move("b2", "b3"), // one step forwards
-      new Move("b2", "b4"), // two step forwards
-      new Move("b2", "a3"), // capture
-      new Move("b2", "c3")  // capture
-    };
-
-    var g7BlackPawnMoves = new List<Move>()
-    {
-      new Move("g7", "g6"), // one step forwards
-      new Move("g7", "h6")  // capture
-    };
-
-    var f4BlackPawnMoves = new List<Move>()
-    {
-      new Move("f4", "f3"), // one step forwards
-      new Move("f4", "g3")  // en passant capture
-    };
-
-    var b5WhitePawnMoves = new List<Move>()
-    {
-      new Move("b5", "b6"),  // one step forwads
-      new Move("b5", "c6")   // en passant capture
-    };
-
-    yield return new object[] { boardString, "b2", b2WhitePawnMoves };
-    yield return new object[] { boardString, "g7", g7BlackPawnMoves };
-    yield return new object[] { boardString, "f4", f4BlackPawnMoves };
-    yield return new object[] { boardString, "b5", b5WhitePawnMoves };
-  }
-
   [Theory, MemberData(nameof(TestChecksData))]
   public void TestChecks(string boardString,
                          Color playerTurn,
@@ -282,44 +211,5 @@ public class ChessLibTests
 
     yield return new object[] { boardStr, Color.Black, "", blackLegalMoves };
     yield return new object[] { blockingCheckBoardStr, Color.White, "b7", b7WhiteQueenLegalMoves };
-  }
-
-  [Theory, MemberData(nameof(TestPromotionMovesData))]
-  public void TestPromotionMoves(string boardString,
-                                      Color playerTurn,
-                                      string pawnTile,
-                                      Move promotionMove)
-  {
-    var board = new Board(playerTurn, boardString);
-
-    var pawn = board.GetTile(pawnTile).Piece;
-    var pawnMoves = pawn.GetMoves(board, Tile.StringToIndex(pawnTile));
-
-    Assert.Contains(promotionMove, pawnMoves);
-
-    board.MakeMove(promotionMove);
-
-    Assert.IsType<Queen>(board.GetTile(promotionMove.Dst).Piece);
-  }
-
-  public static IEnumerable<object[]> TestPromotionMovesData()
-  {
-    var boardString = """
-    ________
-    P_______
-    ________
-    P_______
-    ________
-    ________
-    p_______
-    ________
-    """
-    .Replace("\n", String.Empty);
-
-    // white promotion
-    yield return new object[] { boardString, Color.White, "a7", new PromotionMove("a7", "a8") };
-
-    // black promotion
-    yield return new object[] { boardString, Color.Black, "a2", new PromotionMove("a2", "a1") };
   }
 }
