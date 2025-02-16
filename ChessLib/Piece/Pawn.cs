@@ -4,22 +4,22 @@ public class Pawn : IPiece
 {
   public Color Color { get; }
   public bool HasMoved { get; set; }
-  public char CharRepresentation { get; }
   public bool IsEnpassantable { get; set; }
+  public char CharRepresentation { get; }
 
   public Pawn(Color color, bool hasMoved = false, bool isEnpassantable = false)
   {
     Color = color;
     HasMoved = hasMoved;
-    CharRepresentation = (color == Color.White) ? 'P' : 'p';
     IsEnpassantable = isEnpassantable;
+    CharRepresentation = (color == Color.White) ? 'P' : 'p';
   }
 
   List<Move> IPiece.GetMoves(Board board, int pieceTilePos)
   {
     return ForwardMoves(board, pieceTilePos)
            .Concat(RegularCaptureMoves(board, pieceTilePos))
-           .Concat(EnPassantCaptureMoves(board, pieceTilePos))
+           .Concat(EnpassantCaptureMoves(board, pieceTilePos))
            .ToList();
   }
 
@@ -55,7 +55,7 @@ public class Pawn : IPiece
         var twoTilesForward = forwardTiles[1];
 
         if (!board.IsTileOccupied(twoTilesForward) && !this.HasMoved)
-          moves.Add(new Move(pieceTilePos, twoTilesForward));
+          moves.Add(new PawnDoubleMove(pieceTilePos, twoTilesForward));
       }
     }
 
@@ -106,7 +106,7 @@ public class Pawn : IPiece
     });
   }
 
-  private List<Move> EnPassantCaptureMoves(Board board, int pieceTilePos)
+  private List<Move> EnpassantCaptureMoves(Board board, int pieceTilePos)
   {
     var horizontalTiles = new List<List<int>>
     {
@@ -126,12 +126,12 @@ public class Pawn : IPiece
     {
       Pawn pawn = board.GetTile(next).Piece as Pawn;
 
-      if (pawn != null && pawn.IsEnpassantable)
+      if (pawn != null && pawn.Color != this.Color && pawn.IsEnpassantable)
       {
         if (Color.White == this.Color)
-          current.Add(new Move(pieceTilePos, next + 8));
+          current.Add(new EnpassantCapture(pieceTilePos, next + 8));
         else
-          current.Add(new Move(pieceTilePos, next - 8));
+          current.Add(new EnpassantCapture(pieceTilePos, next - 8));
       }
 
       return current;

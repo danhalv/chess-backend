@@ -78,6 +78,7 @@ public class ChessApiWebSocketControllerTests : ChessApiControllerTests
     var movedPiece = boardAfterMove.GetTile("h4").Piece;
     Assert.NotNull(movedPiece);
     movedPiece.HasMoved = true;
+    movedPiece.IsEnpassantable = true;
     var boardJsonAfterMove = JsonSerializer.Serialize(boardAfterMove);
     Assert.Equal(boardJsonAfterMove, whitePlayerReceivedMessage);
     Assert.Equal(boardJsonAfterMove, blackPlayerReceivedMessage);

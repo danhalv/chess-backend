@@ -142,7 +142,8 @@ public class Board
     // true, if all possible moves result in check
     return PlayerMoves(Turn).All(move =>
     {
-      MakeMove(move);
+      bool isSearch = true;
+      MakeMove(move, isSearch);
 
       var player = (Turn == Color.White) ? Color.Black : Color.White;
       bool isCheckAfterMove = IsCheck(player);
@@ -172,7 +173,8 @@ public class Board
   {
     return PlayerMoves(Turn).Where(move =>
     {
-      MakeMove(move);
+      bool isSearch = true;
+      MakeMove(move, isSearch);
 
       var player = (Turn == Color.White) ? Color.Black : Color.White;
       bool isCheckAfterMove = IsCheck(player);
@@ -183,7 +185,7 @@ public class Board
     }).ToList();
   }
 
-  public void MakeMove(Move move)
+  public void MakeMove(Move move, bool isSearch = false)
   {
     // save new move data
     MoveData = new Dictionary<int, (IPiece?, bool)>();
@@ -223,6 +225,17 @@ public class Board
       Tiles[move.Src].Piece = null;
       Tiles[move.Dst].Piece = null;
     }
+    else if (move is EnpassantCapture)
+    {
+      var enPassantableTile = (Turn == Color.White) ? move.Dst - 8 : move.Dst + 8;
+      addMoveData(move.Src);
+      addMoveData(move.Dst);
+      addMoveData(enPassantableTile);
+      Tiles[move.Dst].Piece = Tiles[move.Src].Piece;
+      Tiles[move.Src].Piece = null;
+      Tiles[enPassantableTile].Piece = null;
+      Tiles[move.Dst].Piece.HasMoved = true;
+    }
     else if (move is PromotionMove)
     {
       addMoveData(move.Src);
@@ -240,6 +253,11 @@ public class Board
       Tiles[move.Src].Piece = null;
       Tiles[move.Dst].Piece.HasMoved = true;
     }
+
+    ResetEnpassantStatus();
+
+    if (move is PawnDoubleMove && !isSearch)
+      Tiles[move.Dst].Piece.IsEnpassantable = true;
 
     Turn = (Turn == Color.White) ? Color.Black : Color.White;
   }
@@ -260,6 +278,13 @@ public class Board
     }
 
     Turn = (Turn == Color.White) ? Color.Black : Color.White;
+  }
+
+  private void ResetEnpassantStatus()
+  {
+    var pieceTiles = Tiles.Where(tile => tile.Piece != null).ToList();
+
+    pieceTiles.ForEach(pieceTile => pieceTile.Piece.IsEnpassantable = false);
   }
 
   private List<Move> PlayerMoves(Color playerColor)

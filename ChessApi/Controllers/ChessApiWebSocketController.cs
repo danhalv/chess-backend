@@ -83,6 +83,12 @@ public class ChessApiWebSocketController : ControllerBase
           case CastlingMove castlingMove:
             board.MakeMove((CastlingMove)castlingMove);
             break;
+          case EnpassantCapture enpassantCapture:
+            board.MakeMove((EnpassantCapture)enpassantCapture);
+            break;
+          case PawnDoubleMove pawnDoubleMove:
+            board.MakeMove((PawnDoubleMove)pawnDoubleMove);
+            break;
           case PromotionMove promotionMove:
             board.MakeMove((PromotionMove)promotionMove);
             break;
@@ -124,6 +130,12 @@ public class ChessApiWebSocketController : ControllerBase
               {
                 case CastlingMove castlingMove:
                   board.MakeMove((CastlingMove)castlingMove);
+                  break;
+                case EnpassantCapture enpassantCapture:
+                  board.MakeMove((EnpassantCapture)enpassantCapture);
+                  break;
+                case PawnDoubleMove pawnDoubleMove:
+                  board.MakeMove((PawnDoubleMove)pawnDoubleMove);
                   break;
                 case PromotionMove promotionMove:
                   board.MakeMove((PromotionMove)promotionMove);

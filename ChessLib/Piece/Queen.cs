@@ -4,6 +4,7 @@ public class Queen : IPiece
 {
   public Color Color { get; }
   public bool HasMoved { get; set; }
+  public bool IsEnpassantable { get; set; }
   public char CharRepresentation { get; }
 
   public Queen(Color color)

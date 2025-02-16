@@ -4,6 +4,7 @@ public class Knight : IPiece
 {
   public Color Color { get; }
   public bool HasMoved { get; set; }
+  public bool IsEnpassantable { get; set; }
   public char CharRepresentation { get; }
 
   public Knight(Color color)

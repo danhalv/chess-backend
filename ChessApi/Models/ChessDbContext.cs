@@ -1,7 +1,6 @@
 using ChessLib;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
 namespace ChessApi.Models;
 
 public class ChessDbContext : DbContext
@@ -32,9 +31,11 @@ public class ChessDbContext : DbContext
 
     // Use TPH inheritance strategy at the entity level for Move and its subclasses
     modelBuilder.Entity<Move>()
-      .HasDiscriminator<string>("MoveType")       // Discriminator for TPH
-      .HasValue<Move>("Move")                     // Base type
-      .HasValue<CastlingMove>("CastlingMove")     // Subclass
-      .HasValue<PromotionMove>("PromotionMove");  // Subclass
+      .HasDiscriminator<string>("MoveType")           // Discriminator for TPH
+      .HasValue<Move>("Move")                         // Base type
+      .HasValue<CastlingMove>("CastlingMove")         // Subclass
+      .HasValue<EnpassantCapture>("EnpassantCapture") // Subclass
+      .HasValue<PawnDoubleMove>("PawnDoubleMove")     // Subclass
+      .HasValue<PromotionMove>("PromotionMove");      // Subclass
   }
 }

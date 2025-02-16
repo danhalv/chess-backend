@@ -39,13 +39,13 @@ public class PawnTests
     var whitePawnMoves = new List<Move>()
     {
       new Move(whitePawnTile, "b3"),
-      new Move(whitePawnTile, "b4")
+      new PawnDoubleMove(whitePawnTile, "b4")
     };
 
     var blackPawnMoves = new List<Move>()
     {
       new Move(blackPawnTile, "b6"),
-      new Move(blackPawnTile, "b5")
+      new PawnDoubleMove(blackPawnTile, "b5")
     };
 
     var blackPawnHasMovedMoves = new List<Move>()
@@ -108,23 +108,21 @@ public class PawnTests
     yield return new object[] { blackToPlayBoard, blackPawnTile, blackPawnMoves };
   }
 
-  [Theory, MemberData(nameof(TestPawnEnPassantCaptureMovesData))]
-  public void TestPawnEnPassantCaptureMoves(Board board, string pawnTilePosition, List<Move> expected)
+  [Theory, MemberData(nameof(TestPawnEnpassantCaptureMovesData))]
+  public void TestPawnEnpassantCaptureMoves(Board board, string pawnTilePosition, List<Move> expected)
   {
     // Arrange
     Tile pawnTile = board.GetTile(pawnTilePosition);
 
     // Act
     var actual = pawnTile.Piece.GetMoves(board, pawnTile.Index);
+    actual = actual.OfType<EnpassantCapture>().Cast<Move>().ToList();
 
     // Assert
-    foreach (var move in expected)
-    {
-      Assert.Contains(move, actual);
-    }
+    Assert.Equal(expected.ToHashSet(), actual.ToHashSet());
   }
 
-  public static IEnumerable<object[]> TestPawnEnPassantCaptureMovesData()
+  public static IEnumerable<object[]> TestPawnEnpassantCaptureMovesData()
   {
     var boardString = "________" +
                       "____rpP_" +
@@ -143,12 +141,12 @@ public class PawnTests
 
     var whitePawnMoves = new List<Move>()
     {
-      new Move(whitePawnTile, "e4") // right en passant
+      new EnpassantCapture(whitePawnTile, "e4") // right en passant
     };
 
     var blackPawnMoves = new List<Move>()
     {
-      new Move(blackPawnTile, "g6") // left en passant
+      new EnpassantCapture(blackPawnTile, "g6") // left en passant
     };
 
     ((Pawn)whiteToPlayBoard.GetTile(Tile.StringToIndex(whitePawnTile) + 1).Piece!).IsEnpassantable = true;
