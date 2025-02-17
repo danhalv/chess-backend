@@ -6,6 +6,7 @@ public class Board
 {
   // Represents board. Index 0 starts at 'a1' tile.
   public Tile[] Tiles { get; private set; } = new Tile[64];
+  public bool IsCheckmate { get; private set; } = false;
   public Color Turn { get; private set; } = Color.White;
   private Dictionary<int, (IPiece? Piece, bool HasMoved)> MoveData =
     new Dictionary<int, (IPiece?, bool)>();
@@ -134,13 +135,13 @@ public class Board
     });
   }
 
-  public bool IsCheckmate()
+  public void UpdateCheckmate()
   {
     if (!IsCheck())
-      return false;
+      IsCheckmate = false;
 
     // true, if all possible moves result in check
-    return PlayerMoves(Turn).All(move =>
+    bool isCheckmate = PlayerMoves(Turn).All(move =>
     {
       bool isSearch = true;
       MakeMove(move, isSearch);
@@ -152,6 +153,8 @@ public class Board
 
       return isCheckAfterMove;
     });
+
+    IsCheckmate = isCheckmate;
   }
 
   public bool IsTileOccupied(int tileIndex)

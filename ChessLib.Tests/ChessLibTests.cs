@@ -111,7 +111,8 @@ public class ChessLibTests
   {
     var board = new Board(playerTurn, boardString);
 
-    bool actual = board.IsCheckmate();
+    board.UpdateCheckmate();
+    bool actual = board.IsCheckmate;
 
     Assert.Equal(expected, actual);
   }

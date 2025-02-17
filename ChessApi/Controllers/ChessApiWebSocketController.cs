@@ -149,13 +149,27 @@ public class ChessApiWebSocketController : ControllerBase
             };
 
             makeMove();
+            board.UpdateCheckmate();
             chessgame!.Turn = board.Turn;
+            chessgame!.IsCheckmate = board.IsCheckmate;
             await Db!.SaveChangesAsync();
 
             var jsonBoardStr = JsonSerializer.Serialize(board);
             MessageBuffer = System.Text.Encoding.UTF8.GetBytes(jsonBoardStr);
 
             await BroadcastMessage(gameId, jsonBoardStr.Length);
+
+            if (chessgame!.IsCheckmate)
+            {
+              string winner = chessgame!.Turn == Color.White ? "Black" : "White";
+
+              await players.whitePlayer.CloseOutputAsync(WebSocketCloseStatus.NormalClosure,
+                                                         $"{winner} checkmate! Game is over.",
+                                                         CancellationToken.None);
+              await players.blackPlayer.CloseOutputAsync(WebSocketCloseStatus.NormalClosure,
+                                                         $"{winner} checkmate! Game is over.",
+                                                         CancellationToken.None);
+            }
 
             break;
           }
