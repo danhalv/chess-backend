@@ -19,6 +19,7 @@
   <script>
 
     drawBoard();
+    createStatusMessage();
 
     const queryString = window.location.search;
     const urlParams = new URLSearchParams(queryString);
@@ -47,6 +48,7 @@
         setTileColor();
         resetTiles();
         drawPieces(json);
+        updateStatusMessage(json);
       }
     };
 
@@ -189,6 +191,42 @@
           }
         }
       }
+    }
+
+    function createStatusMessage() {
+      var gameLinkNode = document.createElement('span');
+      var playerTurnNode = document.createElement('span');
+      var checkmateNode = document.createElement('span');
+      gameLinkNode.setAttribute('id', 'gameLinkNode');
+      playerTurnNode.setAttribute('id', 'playerTurnNode');
+      checkmateNode.setAttribute('id', 'checkmateNode');
+      document.body.appendChild(checkmateNode);
+      document.body.appendChild(document.createElement('br'));
+      document.body.appendChild(document.createElement('br'));
+      document.body.appendChild(playerTurnNode);
+      document.body.appendChild(document.createElement('br'));
+      document.body.appendChild(document.createElement('br'));
+      document.body.appendChild(gameLinkNode);
+    }
+
+    function updateStatusMessage(boardJson) {
+      const gameLinkText = 'Game link: ' + window.location.href;
+      var gameLinkNode = document.getElementById('gameLinkNode');
+      gameLinkNode.textContent = gameLinkText;
+
+      const playerTurn = boardJson.Turn == 0 ? 'black' : 'white';
+      const playerTurnText =
+        'Player turn: ' + playerTurn;
+      var playerTurnNode = document.getElementById('playerTurnNode');
+      playerTurnNode.textContent = playerTurnText;
+
+      var checkmateText = '';
+      if (boardJson.IsCheckmate) {
+        const winner = boardJson.Turn == 0 ? 'White' : 'Black';
+        checkmateText = winner + ' checkmate! Game is over.';
+      }
+      var checkmateNode = document.getElementById('checkmateNode');
+      checkmateNode.textContent = checkmateText;
     }
 
     function resetTiles() {
